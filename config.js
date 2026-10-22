@@ -1,8 +1,8 @@
-// cCc Ascendants — the live site, on its own database Worker.
-// The database Worker: https://ascendants-db.ccc-hq.com
+// cCc Anatolia — the live site, on its own database Worker.
+// The database Worker: https://anatolia-db.ccc-hq.com
 //   - every read and change of the pages is answered by the database
 //     (there is no Google Sheet / Apps Script for this clan).
-window.CLOUDFLARE_WORKER_URL = 'https://ascendants-db.ccc-hq.com/';
+window.CLOUDFLARE_WORKER_URL = 'https://anatolia-db.ccc-hq.com/';
 window.IS_STAGING_SITE = false;
 
 // Frontend should call the worker to avoid GAS CORS restrictions.
@@ -14,13 +14,13 @@ window.GAS_WEB_APP_URL = window.CLOUDFLARE_WORKER_URL;
 // request to the Worker, so officers stay signed in between visits; changes and
 // officer-only pages need it. Every page's own login code keeps working as is:
 // this only watches the requests to the Worker.
-// (The pages keep their login in 'asc_auth' as { email, allowed }.)
+// (The pages keep their login in 'ana_auth' as { email, allowed }.)
 (function signInPass() {
-	var SESSION_KEY = 'asc_session';
-	var SESSION_EMAIL_KEY = 'asc_session_email';
-	var SESSION_EXPIRES_KEY = 'asc_session_expires';
-	var PAGE_AUTH_KEY = 'asc_auth';
-	var LOGIN_KEYS = ['asc_auth', 'asc_portal_role', 'asc_portal_member'];
+	var SESSION_KEY = 'ana_session';
+	var SESSION_EMAIL_KEY = 'ana_session_email';
+	var SESSION_EXPIRES_KEY = 'ana_session_expires';
+	var PAGE_AUTH_KEY = 'ana_auth';
+	var LOGIN_KEYS = ['ana_auth', 'ana_portal_role', 'ana_portal_member'];
 	var DAYS_30 = 30 * 24 * 3600 * 1000;
 
 	function get(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
@@ -63,9 +63,9 @@ window.GAS_WEB_APP_URL = window.CLOUDFLARE_WORKER_URL;
 		(document.head || document.documentElement).appendChild(style);
 	})();
 
-	// "Logout" on a page removes 'asc_auth': once it was there during this visit
+	// "Logout" on a page removes 'ana_auth': once it was there during this visit
 	// and is gone, the pass is dropped too. (While signing in the page asks the
-	// Worker first and only then stores 'asc_auth', so a missing key alone must
+	// Worker first and only then stores 'ana_auth', so a missing key alone must
 	// not drop the pass.)
 	var seenPageEmail = !!pageEmail();
 
@@ -142,7 +142,7 @@ window.GAS_WEB_APP_URL = window.CLOUDFLARE_WORKER_URL;
 		var badge = document.createElement('div');
 		badge.id = 'staging-site-badge';
 		badge.textContent = 'MASTERS STAGING — test copy';
-		badge.title = 'Test copy of the cCc Ascendants site on the database Worker. Changes are disabled here; use the live site.';
+		badge.title = 'Test copy of the cCc Anatolia site on the database Worker. Changes are disabled here; use the live site.';
 		badge.style.cssText = [
 			'position:fixed', 'left:8px', 'bottom:8px', 'z-index:2147483647',
 			'background:#c62828', 'color:#fff', 'font:700 12px/1.2 Arial,sans-serif',

@@ -1,13 +1,13 @@
 /**
- * Portal role gating (cCc Ascendants).
+ * Portal role gating (cCc Anatolia).
  *
  * admin  - e-mail listed in ALLOWED_MANAGEMENT_EMAILS, sees management pages
  * member - e-mail linked to one or more active Members rows, sees public pages and My Profile
  */
 (function () {
-  var AUTH_KEY = 'asc_auth';
-  var ROLE_KEY = 'asc_portal_role';
-  var MEMBER_KEY = 'asc_portal_member';
+  var AUTH_KEY = 'ana_auth';
+  var ROLE_KEY = 'ana_portal_role';
+  var MEMBER_KEY = 'ana_portal_member';
 
   var ADMIN_ONLY_PAGES = [
     'events.html',

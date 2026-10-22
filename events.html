@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>cCc Ascendants - Events</title>
+  <title>cCc Anatolia - Events</title>
   <link rel="icon" type="image/png" href="logo.png">
   <script src="perf-debug.js"></script>
   <script src="config.js"></script>
@@ -211,7 +211,7 @@
 </div>
 
 <div class="container" id="mainContent">
-  <img src="events.png" alt="cCc Ascendants" class="site-logo">
+  <img src="events.png" alt="cCc Anatolia" class="site-logo">
   <h1>Events</h1>
   <p class="subtitle">Event Management &amp; Participation Tracking</p>
 
@@ -710,7 +710,7 @@
 
   // AUTH
   function checkLoginState() {
-    const stored = localStorage.getItem('asc_auth');
+    const stored = localStorage.getItem('ana_auth');
     if (stored) {
       try {
         const auth = JSON.parse(stored);
@@ -736,13 +736,13 @@
         const auth = vData.data || vData;
         if (auth.success && auth.allowed) {
           isLoggedIn = true; currentUser = { email: data.email, allowed: true };
-          localStorage.setItem('asc_auth', JSON.stringify(currentUser));
+          localStorage.setItem('ana_auth', JSON.stringify(currentUser));
           updateLoginUI(); showToast('Logged in', 'success');
         } else { showToast('Access denied', 'error'); }
       }
     } catch (err) { showToast('Login error', 'error'); }
   }
-  function handleLogout() { isLoggedIn = false; currentUser = null; localStorage.removeItem('asc_auth'); window.location.href = 'dashboard.html'; }
+  function handleLogout() { isLoggedIn = false; currentUser = null; localStorage.removeItem('ana_auth'); window.location.href = 'dashboard.html'; }
   function updateLoginUI() {
     document.getElementById('userEmail').textContent = isLoggedIn ? currentUser.email : '';
     document.getElementById('userEmail').style.display = isLoggedIn ? 'inline' : 'none';

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>cCc Ascendants - My Profile</title>
+  <title>cCc Anatolia - My Profile</title>
   <link rel="icon" type="image/png" href="logo.png">
   <script src="perf-debug.js"></script>
   <script src="config.js"></script>
@@ -125,7 +125,7 @@
 </nav>
 
 <div class="container">
-  <img src="member_profile.png" alt="cCc Ascendants" class="site-logo">
+  <img src="member_profile.png" alt="cCc Anatolia" class="site-logo">
   <h1>My Profile</h1>
   <p class="subtitle">Your bank balance, target progress, and recent activity</p>
 
@@ -150,7 +150,7 @@
   });
 
   function checkLoginState() {
-    const stored = localStorage.getItem('asc_auth');
+    const stored = localStorage.getItem('ana_auth');
     if (stored) {
       try {
         currentUser = JSON.parse(stored);
@@ -192,7 +192,7 @@
         if (auth && auth.success && auth.allowed) {
           isLoggedIn = true;
           currentUser = { email: data.email, allowed: true, role: auth.role, memberName: auth.memberName, memberNames: auth.memberNames || [] };
-          localStorage.setItem('asc_auth', JSON.stringify(currentUser));
+          localStorage.setItem('ana_auth', JSON.stringify(currentUser));
           updateLoginUI();
           showToast('Logged in as ' + data.email, 'success');
           loadProfile();
@@ -203,9 +203,9 @@
 
   function handleLogout() {
     isLoggedIn = false; currentUser = null;
-    localStorage.removeItem('asc_auth');
-    localStorage.removeItem('asc_portal_role');
-    localStorage.removeItem('asc_portal_member');
+    localStorage.removeItem('ana_auth');
+    localStorage.removeItem('ana_portal_role');
+    localStorage.removeItem('ana_portal_member');
     updateLoginUI();
     renderSignedOut();
   }

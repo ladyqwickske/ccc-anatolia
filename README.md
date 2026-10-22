@@ -1,2 +1,2 @@
-# ccc-ascendants
-Website for cCc Ascendants
+# ccc-anatolia
+Website for cCc Anatolia

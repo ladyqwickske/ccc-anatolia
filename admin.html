@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>cCc Ascendants - Admin</title>
+  <title>cCc Anatolia - Admin</title>
   <link rel="icon" type="image/png" href="logo.png">
   <script src="perf-debug.js"></script>
   <script src="config.js"></script>
@@ -226,7 +226,7 @@
 </div>
 
 <div class="container" id="mainContent">
-  <img src="admin.png" alt="cCc Ascendants" class="site-logo">
+  <img src="admin.png" alt="cCc Anatolia" class="site-logo">
   <h1>Admin</h1>
   <p class="subtitle">Chest data, rules, transfers between the clans and access</p>
 
@@ -545,7 +545,7 @@
 
   // AUTH (same pattern as dashboard)
   function checkLoginState() {
-    const stored = localStorage.getItem('asc_auth');
+    const stored = localStorage.getItem('ana_auth');
     if (stored) {
       try {
         const auth = JSON.parse(stored);
@@ -590,7 +590,7 @@
         if (authResult.success && authResult.allowed) {
           isLoggedIn = true;
           currentUser = { email: data.email, allowed: true };
-          localStorage.setItem('asc_auth', JSON.stringify(currentUser));
+          localStorage.setItem('ana_auth', JSON.stringify(currentUser));
           updateLoginUI();
           showToast('Logged in as ' + data.email, 'success');
         } else { showToast('Access denied', 'error'); }
@@ -600,7 +600,7 @@
 
   function handleLogout() {
     isLoggedIn = false; currentUser = null;
-    localStorage.removeItem('asc_auth');
+    localStorage.removeItem('ana_auth');
     window.location.href = 'dashboard.html';
   }
 
@@ -1249,7 +1249,7 @@
         status('');
         try {
           let email = '';
-          try { email = (JSON.parse(localStorage.getItem('asc_auth') || '{}').email) || ''; } catch (e) {}
+          try { email = (JSON.parse(localStorage.getItem('ana_auth') || '{}').email) || ''; } catch (e) {}
           const r = await post({ action: 'updateOcrCorrections', changes: changes, userEmail: email });
           if (!r || !r.success) throw new Error((r && (r.message || r.error)) || 'The change failed');
           show(r);
@@ -1350,7 +1350,7 @@
         btn.disabled = true;
         try {
           let email = '';
-          try { email = (JSON.parse(localStorage.getItem('asc_auth') || '{}').email) || ''; } catch (e) {}
+          try { email = (JSON.parse(localStorage.getItem('ana_auth') || '{}').email) || ''; } catch (e) {}
           const r = await post({ action: 'updateChestPoints', changes: changes, userEmail: email });
           if (!r || !r.success) throw new Error((r && (r.message || r.error)) || 'The change failed');
           show(r);
