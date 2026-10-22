@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cCc Ascendants - Members</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <script src="perf-debug.js"></script>
+  <script src="config.js"></script>
+  <script src="table-sort.js"></script>
+  <script src="site-config.js"></script>
+  <script src="portal-shim.js"></script>
+  <script src="portal-auth.js"></script>
+  <script src="member-transfers.js"></script>
+  <style>
+    :root {
+      --primary: #7c99b4;
+      --primary-soft: #8eb8e5;
+      --primary-strong: #8eb8e5;
+      --primary-hover: #6f93b8;
+      --accent: #ffd24d;
+      --accent-light: #2c3440;
+      --accent-strong: #e6a418;
+      --accent-deep: #ffb300;
+      --bg-dark: #121110;
+      --bg-card: rgba(40, 36, 33, 0.96);
+      --bg-card-soft: #34302c;
+      --bg-page: #1c1a18;
+      --bg-page-alt: #2b2622;
+      --text: #ece6df;
+      --text-muted: #b3aca4;
+      --success: #8fc79a;
+      --danger: #ffb74d;
+      --border: #4a4540;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg-page-alt) 0%, var(--bg-page) 55%, var(--accent-light) 100%);
+      color: var(--text); min-height: 100vh;
+      background-attachment: fixed; padding: 60px 8px 80px 8px;
+    }
+    .tab-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; justify-content: center; gap: 0;
+      background: rgba(42, 38, 35, 0.96); border-bottom: 2px solid var(--primary-soft);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      padding: 0;
+    }
+    .tab-nav a {
+      color: var(--text-muted); text-decoration: none;
+      padding: 12px 18px; font-size: 0.95em; font-weight: 500;
+      border-bottom: 3px solid transparent; transition: all 0.2s;
+    }
+    .tab-nav a:hover { color: var(--primary); }
+    .tab-nav a.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .nav-icon { width: 18px; height: 18px; vertical-align: middle; margin-right: 4px; }
+    .login-bar {
+      position: fixed; top: 0; right: 8px; z-index: 1001;
+      display: flex; align-items: center; gap: 8px; padding: 8px;
+    }
+    .login-bar .user-email { font-size: 0.8em; color: var(--primary); }
+    .login-bar button {
+      background: var(--primary); color: #ffffff; border: none; border-radius: 6px;
+      padding: 6px 14px; cursor: pointer; font-weight: 600; font-size: 0.85em;
+    }
+    .login-bar button:hover { background: var(--primary-hover); }
+    .login-bar .logout-btn { background: var(--accent-light); color: var(--accent-deep); }
+    .container {
+      max-width: 1200px; margin: 0 auto; background: var(--bg-card);
+      border-radius: 16px; box-shadow: 0 12px 30px rgba(73, 44, 29,0.12); padding: 24px 16px; border: 1px solid rgba(142, 184, 229,0.45);
+    }
+    h1 { color: var(--primary); text-align: center; margin-bottom: 4px; font-size: 1.8em; }
+    .site-logo { width: 64px; height: 64px; display: block; margin: 0 auto 8px auto; }
+    .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 16px; font-size: 0.9em; }
+
+    /* Member Form (admin only) */
+    .admin-panel {
+      display: none; background: linear-gradient(180deg, #2a2623 0%, var(--bg-card-soft) 100%); border-radius: 12px;
+      padding: 16px; margin-bottom: 20px; border: 1px solid var(--border);
+    }
+    .admin-panel.visible { display: block; }
+    .admin-panel h3 { color: var(--primary); margin-bottom: 12px; font-size: 1em; }
+    .form-row {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;
+    }
+    .form-row input, .form-row select {
+      flex: 1; min-width: 120px; padding: 8px 12px;
+      background: #2a2623; border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-size: 0.9em;
+    }
+    .form-row input:focus, .form-row select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(124, 153, 180,0.18); }
+    .btn {
+      background: var(--primary); color: #fff; border: none; border-radius: 8px;
+      padding: 8px 16px; cursor: pointer; font-weight: 600; font-size: 0.9em;
+    }
+    .btn:hover { background: var(--primary-hover); }
+    .btn.danger { background: var(--danger); color: #fff; }
+    .btn.danger:hover { background: #a93226; }
+    .btn.secondary { background: var(--accent-light); color: var(--accent-deep); }
+
+    /* Members Table */
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+    th {
+      background: var(--bg-card-soft); color: var(--primary-hover); padding: 10px 8px;
+      text-align: left; border-bottom: 2px solid var(--accent); cursor: pointer;
+    }
+    th:hover { background: var(--accent-light); }
+    td { padding: 8px; border-bottom: 1px solid #3d3833; }
+    tr:hover { background: rgba(142, 184, 229,0.14); }
+
+    .might-value { color: var(--primary); font-weight: 600; }
+    .growth-positive { color: var(--success); }
+    .growth-negative { color: var(--danger); }
+    .member-actions { display: flex; gap: 4px; }
+    .member-actions button {
+      background: var(--bg-card-soft); color: var(--text); border: none; border-radius: 4px;
+      padding: 4px 8px; cursor: pointer; font-size: 0.8em;
+    }
+    .member-actions button:hover { background: var(--accent-light); }
+    .member-actions .remove-btn:hover { background: var(--danger); color: #fff; }
+
+    .loading { text-align: center; padding: 40px; color: var(--text-muted); }
+    .spinner {
+      display: inline-block; width: 24px; height: 24px;
+      border: 3px solid var(--border); border-top-color: var(--primary);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .toast {
+      position: fixed; bottom: 20px; right: 20px; z-index: 3000;
+      background: #2a2623; color: var(--text); padding: 12px 20px;
+      border-radius: 8px; font-size: 0.9em; display: none;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    }
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+
+    .member-count { text-align: center; color: var(--text-muted); font-size: 0.85em; margin-bottom: 12px; }
+
+    .nav-links { display: flex; }
+    .hamburger {
+      display: none; background: none; border: none; cursor: pointer; padding: 8px;
+      flex-direction: column; gap: 4px;
+    }
+    .hamburger span {
+      display: block; width: 22px; height: 2px; background: var(--primary); border-radius: 2px;
+    }
+    @media (max-width: 600px) {
+      body { padding: 50px 4px 70px 4px; }
+      .tab-nav { flex-wrap: wrap; padding: 0 8px; align-items: center; }
+      .hamburger { display: flex; }
+      .login-bar {
+        position: static; flex: 1; justify-content: flex-end;
+        padding: 4px 0; gap: 6px;
+      }
+      .nav-links { display: none; width: 100%; flex-direction: column; order: 10; }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 10px 12px; font-size: 0.9em; border-bottom: 1px solid var(--border); }
+    }
+
+    /* Tabs & Forms */
+    .tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+    .tab-btn-inner { padding: 8px 14px; background: none; border: none; color: var(--text-muted); font-size: 0.85em; font-weight: 600; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+    .tab-btn-inner:hover { color: var(--primary); }
+    .tab-btn-inner.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-btn-inner[hidden] { display: none; }
+    /* the two groups above the tabs */
+    .tab-groups { display: flex; gap: 8px; width: 100%; margin-bottom: 4px; flex-wrap: wrap; }
+    .tab-group {
+      flex: 1; min-width: 200px; padding: 10px 14px; border-radius: 8px; cursor: pointer;
+      background: #2a2623; border: 1px solid var(--border); color: var(--text); font-size: 0.95em; font-weight: 600; transition: all 0.2s;
+    }
+    .tab-group:hover { border-color: var(--primary); color: var(--primary); }
+    .tab-group.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    /* Member Configuration: the member list is not needed */
+    body.wide-tab #memberCount, body.wide-tab #loadingDiv, body.wide-tab #tableContainer { display: none !important; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .form-grid label { display: block; font-size: 0.75em; font-weight: 600; color: var(--primary); margin-bottom: 4px; text-transform: uppercase; }
+    .form-grid input, .form-grid select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9em; background: #2a2623; color: var(--text); }
+    .form-grid input:focus, .form-grid select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(124, 153, 180,0.18); }
+    .form-grid .note { font-size: 0.7em; color: var(--text-muted); margin-top: 2px; }
+    .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 0 0 16px; }
+    .stat-card { background: var(--bg-card-soft); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
+    .stat-card h3 { font-size: 0.8em; color: var(--primary); margin: 0 0 6px; }
+    .stat-card[title] { cursor: help; }
+    .stat-card .value { font-size: 1.7em; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .status { margin-top: 8px; padding: 8px 12px; border-radius: 6px; font-size: 0.85em; min-height: 1.5em; }
+    .status.ok { background: rgba(51,204,63,0.18); color: #81c784; }
+    .status.err { background: rgba(255,0,38,0.18); color: #ef5350; }
+    .troop-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; font-weight: 700; min-width: 28px; text-align: center; }
+    .troop-badge.g { background: rgba(51,204,63,0.18); color: #81c784; }
+    .troop-badge.m { background: rgba(17,144,238,0.18); color: #64b5f6; }
+    .troop-badge.s { background: rgba(255,156,0,0.18); color: #ffab70; }
+    .troop-badge.e { background: rgba(185,51,204,0.18); color: #ce93d8; }
+    .troop-badge.c { background: rgba(230,25,93,0.18); color: #ef5350; }
+    .hero-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<nav class="tab-nav">
+  <button class="hamburger" id="hamburgerBtn" onclick="document.getElementById('navLinks').classList.toggle('open')"><span></span><span></span><span></span></button>
+  <div class="login-bar" id="loginBar">
+    <span class="user-email" id="userEmail" style="display:none"></span>
+    <button id="loginBtn" onclick="handleLogin()">🔑 Login</button>
+    <button id="logoutBtn" class="logout-btn" style="display:none" onclick="handleLogout()">Logout</button>
+  </div>
+  <div class="nav-links" id="navLinks">
+    <a href="dashboard.html"><img src="chest.png" class="nav-icon" alt=""> Dashboard</a>
+    <a href="events.html"><img src="events.png" class="nav-icon" alt=""> Events</a>
+    <a href="members.html" class="active"><img src="members.png" class="nav-icon" alt=""> Members</a>
+    <a href="profiling.html"><img src="profiling.png" class="nav-icon" alt=""> Profiling</a>
+    <a href="warnings.html"><img src="warning.png" class="nav-icon" alt=""> Warnings</a>
+    <a href="calendar.html"><img src="calendar.png" class="nav-icon" alt=""> Calendar</a>
+    <a href="bank.html"><img src="bank.png" class="nav-icon" alt=""> Bank</a>
+    <a href="admin.html"><img src="admin.png" class="nav-icon" alt=""> Admin</a>
+  </div>
+</nav>
+
+<div class="login-gate" id="loginGate" style="max-width:500px;margin:80px auto;text-align:center;background:var(--bg-card);border-radius:16px;padding:40px 24px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+  <h2 style="color:var(--primary);margin-bottom:12px;">🔒 Login Required</h2>
+  <p style="color:var(--text-muted);margin-bottom:20px;">You need to be logged in to view the Members page.</p>
+  <button class="btn" onclick="handleLogin()" style="padding:12px 32px;font-size:1em;">🔑 Login</button>
+</div>
+
+<div class="container" id="mainContent">
+  <img src="members.png" alt="cCc Ascendants" class="site-logo">
+  <h1>Members</h1>
+  <p class="subtitle">Clan Roster</p>
+
+  <div class="stat-cards">
+    <div class="stat-card"><h3>Total Members</h3><div class="value" id="statTotal">-</div></div>
+    <!-- one card per troop level found in the clan, plus the members without troop levels (updateStats) -->
+    <div id="troopStatCards" style="display:contents"></div>
+    <div class="stat-card"><h3>Top Hero</h3><div class="value" id="statTopHero" style="font-size:1em;line-height:2.4em;">-</div></div>
+  </div>
+
+  <!-- Admin Panel - Tabbed Interface -->
+  <div class="admin-panel" id="adminPanel">
+    <div class="tabs">
+      <!-- Groups, each with its own tabs (switchGroup / switchTab). Setup and
+           corrections (chest data, rules, transfers, access) are on admin.html. -->
+      <div class="tab-groups">
+        <button class="tab-group active" data-group="roster" onclick="switchGroup('roster')">👥 Roster</button>
+        <button class="tab-group" data-group="progress" onclick="switchGroup('progress')">📈 Progress</button>
+      </div>
+      <button class="tab-btn-inner active" data-group="roster" data-tab="addMemberTab" onclick="switchTab('addMemberTab', this)">➕ Add Member</button>
+      <button class="tab-btn-inner" data-group="roster" data-tab="removeMemberTab" onclick="switchTab('removeMemberTab', this)">🚪 Remove Member</button>
+      <button class="tab-btn-inner" hidden data-group="progress" data-tab="troopTab" onclick="switchTab('troopTab', this)">⚔️ Track Troops</button>
+      <button class="tab-btn-inner" hidden data-group="progress" data-tab="heroTab" onclick="switchTab('heroTab', this)">🦸 Hero Level</button>
+      <button class="tab-btn-inner" hidden data-group="progress" data-tab="carterTab" onclick="switchTab('carterTab', this)">🏗️ Carter Level</button>
+      <button class="tab-btn-inner" hidden data-group="progress" data-tab="chestOverviewTab" onclick="switchTab('chestOverviewTab', this)">📦 Chest Points</button>
+    </div>
+
+    <div id="troopTab" class="tab-panel">
+      <h3 style="margin:0 0 10px;color:var(--primary)">Track Troop Levels</h3>
+      <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+        <div><label>Member</label><select id="troopMemberSelect" onchange="loadMemberTroops()"></select></div>
+        <div><label>Date</label><input type="date" id="troopDateInput"><div class="note">Defaults to today</div></div>
+      </div>
+      <div class="form-grid" style="grid-template-columns: repeat(5, 1fr);">
+        <div><label>Guardsmen (G)</label><input type="number" id="troopG" min="1" max="9" placeholder="1-9"></div>
+        <div><label>Specialists (S)</label><input type="number" id="troopS" min="1" max="9" placeholder="1-9"></div>
+        <div><label>Monsters (M)</label><input type="number" id="troopM" min="1" max="9" placeholder="1-9"></div>
+        <div><label>Eng. Corps (E)</label><input type="number" id="troopE" min="1" max="9" placeholder="1-9"></div>
+        <div><label>Carter Lvl (C)</label><input type="number" id="troopC" min="1" max="500" placeholder="1-500"></div>
+      </div>
+      <div class="form-grid" style="grid-template-columns: 1fr;">
+        <div><label>Notes (optional)</label><input type="text" id="troopNotesInput" placeholder="e.g. upgraded during event"></div>
+      </div>
+      <button class="btn" onclick="submitAllTroops()">💾 Save Changed Levels</button>
+      <div id="troopStatus" class="status"></div>
+    </div>
+
+
+    <div id="heroTab" class="tab-panel">
+      <h3 style="margin:0 0 10px;color:var(--primary)">Track Hero Level</h3>
+      <div class="form-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div><label>Member</label><select id="heroMemberSelect"></select></div>
+        <div><label>Hero Level</label><input type="number" id="heroLevelInput" placeholder="e.g. 350" min="0" onkeypress="if(event.key==='Enter'){var bp=document.getElementById('heroBatchPanel');if(bp&&bp.style.display!=='none'){addToHeroBatch();}else{submitHeroLevel();}}"></div>
+        <div><label>Date</label><input type="date" id="heroDateInput"><div class="note">Defaults to today (applies to all batch entries)</div></div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <button class="btn" onclick="var bp=document.getElementById('heroBatchPanel');if(bp&&bp.style.display!=='none'){addToHeroBatch();}else{submitHeroLevel();}">💾 Save Hero Level</button>
+        <button class="btn" style="background:var(--accent);color:#fff;margin-left:8px;" onclick="toggleHeroBatch()">📋 Batch Entry</button>
+        <div id="heroStatus" class="status"></div>
+      </div>
+      <div id="heroBatchPanel" style="display:none;border:1px solid var(--border);border-radius:8px;padding:14px;background:#34302c;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <h4 style="margin:0;color:var(--primary);">⚡ Batch Hero Level — <span id="heroBatchCount" style="color:var(--accent);font-weight:700;">0</span> queued</h4>
+          <div><button class="btn" onclick="saveHeroBatch()">💾 Save All</button><button class="btn secondary" style="margin-left:6px;" onclick="toggleHeroBatch()">✖ Close</button></div>
+        </div>
+        <p style="color:var(--text-muted);font-size:0.82em;margin-bottom:10px;">Use the Member dropdown & Hero Level field above, press Enter to queue each entry. Click Save All when done.</p>
+        <div id="heroBatchStatus" class="status" style="margin-bottom:8px;"></div>
+        <div style="max-height:50vh;overflow-y:auto;"><table id="heroBatchTable" data-sortable data-sort-col="0" style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:var(--bg-card-soft);"><th style="text-align:left;padding:6px 8px;">Member</th><th style="text-align:center;padding:6px 8px;width:100px;">Level</th><th style="text-align:center;padding:6px 8px;width:60px;"></th></tr></thead>
+          <tbody id="heroBatchBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+
+    <div id="carterTab" class="tab-panel">
+      <h3 style="margin:0 0 10px;color:var(--primary)">Track Carter (C) Level</h3>
+      <div class="form-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div><label>Member</label><select id="carterMemberSelect"></select></div>
+        <div><label>Carter Level</label><input type="number" id="carterLevelInput" placeholder="e.g. 150" min="1" max="500" onkeypress="if(event.key==='Enter'){var bp=document.getElementById('carterBatchPanel');if(bp&&bp.style.display!=='none'){addToCarterBatch();}else{submitCarterLevel();}}"></div>
+        <div><label>Date</label><input type="date" id="carterDateInput"><div class="note">Defaults to today (applies to all batch entries)</div></div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <button class="btn" onclick="var bp=document.getElementById('carterBatchPanel');if(bp&&bp.style.display!=='none'){addToCarterBatch();}else{submitCarterLevel();}">💾 Save Carter Level</button>
+        <button class="btn" style="background:var(--accent);color:#fff;margin-left:8px;" onclick="toggleCarterBatch()">📋 Batch Entry</button>
+        <div id="carterStatus" class="status"></div>
+      </div>
+      <div id="carterBatchPanel" style="display:none;border:1px solid var(--border);border-radius:8px;padding:14px;background:#34302c;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <h4 style="margin:0;color:var(--primary);">⚡ Batch Carter Level — <span id="carterBatchCount" style="color:var(--accent);font-weight:700;">0</span> queued</h4>
+          <div><button class="btn" onclick="saveCarterBatch()">💾 Save All</button><button class="btn secondary" style="margin-left:6px;" onclick="toggleCarterBatch()">✖ Close</button></div>
+        </div>
+        <p style="color:var(--text-muted);font-size:0.82em;margin-bottom:10px;">Use the Member dropdown & Carter Level field above, press Enter to queue each entry. Click Save All when done.</p>
+        <div id="carterBatchStatus" class="status" style="margin-bottom:8px;"></div>
+        <div style="max-height:50vh;overflow-y:auto;"><table id="carterBatchTable" data-sortable data-sort-col="0" style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:var(--bg-card-soft);"><th style="text-align:left;padding:6px 8px;">Member</th><th style="text-align:center;padding:6px 8px;width:100px;">Level</th><th style="text-align:center;padding:6px 8px;width:60px;"></th></tr></thead>
+          <tbody id="carterBatchBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+
+    <div id="chestOverviewTab" class="tab-panel">
+      <h3 style="margin:0 0 10px;color:var(--primary)">Chest Points — Last 5 Periods</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">
+        <input type="text" id="cpoSearch" placeholder="🔍 Filter members…" style="flex:1;min-width:200px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;" oninput="ChestOverview.render()">
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.85em;color:var(--text-muted);white-space:nowrap;"><input type="checkbox" id="cpoCustomOnly" onchange="ChestOverview.render()"> Only custom targets</label>
+        <button class="btn secondary" style="margin:0;" onclick="ChestOverview.load(true)">↻ Reload</button>
+      </div>
+      <p id="cpoMeta" style="font-size:0.8em;color:var(--text-muted);margin-bottom:8px;">Each member's chest points per period against their target (Admin → 🎯 Point Targets, else the period's target, else 3000): green ≥ target, orange ≥ 90%, red below. The period's target is under its dates; a member's own (custom) target is shown as 🎯 under their points — e.g. a shortfall carried over from the period before. '-' = not a member yet in that period, '*' = joined during that period.</p>
+      <div id="cpoStatus" class="status" style="display:none;"></div>
+      <div class="table-container" style="max-height:65vh;overflow-y:auto;"><table style="font-size:0.85em;">
+        <thead id="cpoHead"></thead>
+        <tbody id="cpoBody"><tr><td style="padding:8px;color:var(--text-muted);">Loading…</td></tr></tbody>
+      </table></div>
+    </div>
+
+
+    <div id="addMemberTab" class="tab-panel active">
+      <h3 style="margin:0 0 10px;color:var(--primary)">Add New Member</h3>
+      <!-- New or returning member (member-transfers.js: ReturningMember) -->
+      <div style="display:flex;gap:18px;margin-bottom:12px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="radio" name="addMemberMode" value="new" checked> 🆕 New member</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="radio" name="addMemberMode" value="returning"> ↩️ Returning member (was here before)</label>
+      </div>
+      <div id="returningMemberForm" style="display:none;"></div>
+      <div id="newMemberForm">
+        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+          <div><label>Player Name</label><input type="text" id="newMemberName" placeholder="Player Name"></div>
+          <div><label>Join Date</label><input type="date" id="newMemberJoinDate">
+            <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:0.85em;cursor:pointer;text-transform:none;white-space:nowrap;"><input type="checkbox" id="newMemberBeforeReset" style="width:auto;margin:0;"> Joined before reset (17:00 UTC)</label>
+            <div class="note" style="font-size:0.75em;color:var(--text-muted);">Takes part in the events starting that day</div></div>
+        </div>
+        <div id="returningMemberHint" class="status" style="display:none;margin-bottom:10px;"></div>
+        <button class="btn" onclick="addNewMember()">➕ Add Member</button>
+        <div id="addMemberStatus" class="status"></div>
+      </div>
+    </div>
+
+
+    <div id="removeMemberTab" class="tab-panel">
+      <h3 style="margin:0 0 10px;color:var(--primary)">Remove Member</h3>
+      <div class="form-row">
+        <select id="removeMemberSelect"></select>
+        <input type="date" id="removeEndDateInput">
+      </div>
+      <div class="form-row">
+        <input type="text" id="removeReasonInput" placeholder="Reason (optional, e.g. inactive, requested to leave)">
+      </div>
+      <button class="btn danger" onclick="submitRemoveMember()">🚪 Remove Member</button>
+      <div id="removeMemberStatus" class="status"></div>
+    </div>
+
+
+  </div>
+
+  <div class="member-count" id="memberCount"></div>
+
+  <div class="loading" id="loadingDiv"><div class="spinner"></div><br>Loading members...</div>
+  <div class="table-container" id="tableContainer" style="display:none">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortTable('name')">Name</th>
+          <th onclick="sortTable('joinDate')">Joined</th>
+          <th onclick="sortTable('heroLevel')">Hero</th>
+          <th onclick="sortTable('category')" title="Troop Category">Cat</th>
+          <th onclick="sortTable('G')" title="Guardsmen">G</th>
+          <th onclick="sortTable('M')" title="Monsters">M</th>
+          <th onclick="sortTable('S')" title="Specialists">S</th>
+          <th onclick="sortTable('E')" title="Engineer Corps">E</th>
+          <th onclick="sortTable('C')" title="Carter Level">C</th>
+          <th id="actionsHeader" style="display:none">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="membersTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let membersData = [];
+  let troopData = {};   // { lowerName: { G: lvl, M: lvl, S: lvl, E: lvl, C: lvl } }
+  let heroData = {};    // { lowerName: { level, timestamp } }
+  let sortField = 'name';
+  let sortAsc = true;
+  let isLoggedIn = false;
+  let currentUser = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setTodayDefaults();
+    checkLoginState();
+    if (isLoggedIn) {
+      document.getElementById('loginGate').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+      loadAllData();
+    }
+    initReturningAndTransfers();
+  });
+
+  // ➕ Add Member → Returning member (member-transfers.js). Linking former members
+  // and transfers between the clans are on admin.html.
+  function initReturningAndTransfers() {
+    if (window.ReturningMember) {
+      window.ReturningMember.init({
+        container: 'returningMemberForm', newForm: 'newMemberForm', hint: 'returningMemberHint',
+        nameInput: 'newMemberName', modeName: 'addMemberMode',
+        currentMembers: () => membersData.map(m => m.name),
+        onDone: () => loadAllData(),
+      });
+    }
+  }
+
+  function setTodayDefaults() {
+    const today = new Date().toISOString().split('T')[0];
+    ['troopDateInput', 'heroDateInput', 'carterDateInput', 'newMemberJoinDate', 'removeEndDateInput'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = today;
+    });
+  }
+
+  // AUTH (same pattern as dashboard)
+  function checkLoginState() {
+    const stored = localStorage.getItem('asc_auth');
+    if (stored) {
+      try {
+        const auth = JSON.parse(stored);
+        if (auth.email && auth.allowed) {
+          isLoggedIn = true;
+          currentUser = auth;
+          updateLoginUI();
+        }
+      } catch (e) {}
+    }
+  }
+
+  function handleLogin() {
+    if (!document.getElementById('gsi-script')) {
+      const script = document.createElement('script');
+      script.id = 'gsi-script';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.onload = () => initGoogleLogin();
+      document.head.appendChild(script);
+    } else { initGoogleLogin(); }
+  }
+
+  function initGoogleLogin() {
+    google.accounts.id.initialize({ client_id: SITE_CONFIG.googleClientId, callback: handleGoogleCallback });
+    google.accounts.id.prompt();
+  }
+
+  async function handleGoogleCallback(response) {
+    try {
+      const res = await fetch(window.GAS_WEB_APP_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken: response.credential })
+      });
+      const data = await res.json();
+      if (data.success && data.email) {
+        const verifyRes = await fetch(window.GAS_WEB_APP_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'api', fn: 'verifyGoogleLogin', args: [{ email: data.email }] })
+        });
+        const verifyData = await verifyRes.json();
+        const authResult = verifyData.data || verifyData;
+        if (authResult.success && authResult.allowed) {
+          isLoggedIn = true;
+          currentUser = { email: data.email, allowed: true };
+          localStorage.setItem('asc_auth', JSON.stringify(currentUser));
+          updateLoginUI();
+          showToast('Logged in as ' + data.email, 'success');
+        } else { showToast('Access denied', 'error'); }
+      }
+    } catch (err) { showToast('Login error', 'error'); }
+  }
+
+  function handleLogout() {
+    isLoggedIn = false; currentUser = null;
+    localStorage.removeItem('asc_auth');
+    window.location.href = 'dashboard.html';
+  }
+
+  function updateLoginUI() {
+    document.getElementById('userEmail').textContent = isLoggedIn ? currentUser.email : '';
+    document.getElementById('userEmail').style.display = isLoggedIn ? 'inline' : 'none';
+    document.getElementById('loginBtn').style.display = isLoggedIn ? 'none' : 'inline';
+    document.getElementById('logoutBtn').style.display = isLoggedIn ? 'inline' : 'none';
+    document.getElementById('adminPanel').classList.toggle('visible', isLoggedIn);
+    document.getElementById('actionsHeader').style.display = isLoggedIn ? '' : 'none';
+    document.getElementById('loginGate').style.display = isLoggedIn ? 'none' : 'block';
+    document.getElementById('mainContent').style.display = isLoggedIn ? 'block' : 'none';
+    if (isLoggedIn && membersData.length === 0) loadAllData();
+    if (membersData.length > 0) renderTable();
+  }
+
+  // LOAD ALL DATA (members + troops + hero levels)
+  async function loadAllData() {
+    try {
+      const [members, troopSummary, heroLevels] = await Promise.all([
+        callFunction('getMembersList'),
+        callFunction('getAllTroopLevelsSummary').catch(() => null),
+        callFunction('getHeroLevels').catch(() => null)
+      ]);
+
+      if (Array.isArray(members)) {
+        membersData = members;
+      }
+
+      // Process troop data
+      // getAllTroopLevelsSummary returns a plain array with per-type fields like G_currentLevel, M_currentLevel, etc.
+      troopData = {};
+      const troopArr = Array.isArray(troopSummary) ? troopSummary : (troopSummary && Array.isArray(troopSummary.data) ? troopSummary.data : null);
+      if (troopArr) {
+        troopArr.forEach(entry => {
+          const name = (entry.playerName || '').trim();
+          if (name) {
+            troopData[name.toLowerCase()] = {
+              G: entry.G_currentLevel ?? null,
+              M: entry.M_currentLevel ?? null,
+              S: entry.S_currentLevel ?? null,
+              E: entry.E_currentLevel ?? null,
+              C: entry.C_currentLevel ?? null
+            };
+          }
+        });
+      }
+
+      // Process hero data
+      heroData = {};
+      if (heroLevels && heroLevels.success && Array.isArray(heroLevels.data)) {
+        heroLevels.data.forEach(entry => {
+          const name = (entry.playerName || '').trim();
+          if (name) heroData[name.toLowerCase()] = { level: entry.level, timestamp: entry.timestamp };
+        });
+      }
+
+      document.getElementById('memberCount').textContent = `${membersData.length} members`;
+      updateStats();
+      populateSelects();
+      renderTable();
+      document.getElementById('loadingDiv').style.display = 'none';
+      document.getElementById('tableContainer').style.display = 'block';
+    } catch (err) {
+      console.error(err);
+      document.getElementById('loadingDiv').innerHTML = '<span style="color:var(--danger)">Failed to load data</span>';
+    }
+  }
+
+  // Summary cards (as on Champions): members, troop categories, highest hero level.
+  // Summary cards: members, one card per troop level present in the clan (highest
+  // first), the members without troop levels, highest hero level. Hover a troop
+  // card for the members in it.
+  const TROOP_CARD_ORDER = ['T9', 'G9', 'T8', 'G8', 'T7', 'G7', 'G6', 'G5', 'G4', 'G1–3'];
+  const TROOP_CARD_COLORS = { T9: '#7b1fa2', G9: '#ba68c8', T8: '#1565c0', G8: '#00acc1', T7: '#e53935', G7: '#ef6c00', G6: '#c79a00', G5: '#757575', G4: '#757575', 'G1–3': '#757575' };
+  function updateStats() {
+    document.getElementById('statTotal').textContent = membersData.length.toLocaleString();
+    const groups = {};   // level → member names
+    const missing = [];
+    let top = null;
+    membersData.forEach(m => {
+      const key = (m.name || '').toLowerCase();
+      const t = troopData[key] || {};
+      const g = Number(t.G);
+      const cat = determineTroopCategory(t.G, t.M, t.S) || (g > 0 ? 'G1–3' : null);
+      if (cat) (groups[cat] = groups[cat] || []).push(m.name);
+      else missing.push(m.name);
+      const h = heroData[key];
+      if (h && h.level != null && Number(h.level) > (top ? top.level : 0)) top = { name: m.name, level: Number(h.level) };
+    });
+    const titleText = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const card = (label, names, color, note) => `<div class="stat-card" title="${titleText(note + ':\n' + names.slice().sort((a, b) => a.localeCompare(b)).join(', '))}"><h3>${escapeHtml(label)}</h3><div class="value" style="color:${color}">${names.length}</div></div>`;
+    document.getElementById('troopStatCards').innerHTML =
+      TROOP_CARD_ORDER.filter(c => groups[c]).map(c => card(c, groups[c], TROOP_CARD_COLORS[c], c)).join('')
+      + (missing.length ? card('No troop levels', missing, '#c62828', 'No troop levels entered') : '');
+    const el = document.getElementById('statTopHero');
+    el.textContent = top ? `${top.name} (${top.level})` : '-';
+    el.title = top ? `${top.name}: Hero Level ${top.level}` : '';
+  }
+
+  function populateSelects() {
+    const sorted = [...membersData].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    const options = '<option value="">-- Select member --</option>' +
+      sorted.map(m => `<option value="${escapeHtml(m.name)}">${escapeHtml(m.name)}</option>`).join('');
+    ['troopMemberSelect', 'heroMemberSelect', 'carterMemberSelect', 'removeMemberSelect'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = options;
+    });
+  }
+
+  // RENDER TABLE
+  function renderTable() {
+    const tbody = document.getElementById('membersTableBody');
+    tbody.innerHTML = '';
+
+    const sorted = [...membersData].sort((a, b) => {
+      let va, vb;
+      const keyA = (a.name || '').toLowerCase();
+      const keyB = (b.name || '').toLowerCase();
+      const tA = troopData[keyA] || {};
+      const tB = troopData[keyB] || {};
+      const hA = heroData[keyA];
+      const hB = heroData[keyB];
+
+      switch (sortField) {
+        case 'name': va = keyA; vb = keyB; break;
+        case 'joinDate': va = a.joinDate || ''; vb = b.joinDate || ''; break;
+        case 'heroLevel': va = hA ? hA.level : -1; vb = hB ? hB.level : -1; break;
+        case 'category':
+          va = CATEGORY_ORDER.indexOf(determineTroopCategory(tA.G, tA.M, tA.S));
+          vb = CATEGORY_ORDER.indexOf(determineTroopCategory(tB.G, tB.M, tB.S));
+          break;
+        case 'G': case 'M': case 'S': case 'E': case 'C':
+          va = tA[sortField] || 0; vb = tB[sortField] || 0; break;
+        default: va = 0; vb = 0;
+      }
+      if (typeof va === 'string') return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+      return sortAsc ? va - vb : vb - va;
+    });
+
+    sorted.forEach(m => {
+      const key = (m.name || '').toLowerCase();
+      const troops = troopData[key] || {};
+      const hero = heroData[key];
+      const tr = document.createElement('tr');
+
+      const heroHtml = hero && hero.level != null
+        ? `<span class="hero-badge" style="background:${getHeroBg(hero.level)};color:${getHeroFg(hero.level)}" title="Updated: ${hero.timestamp || '?'}">${hero.level}</span>`
+        : '<span style="color:var(--text-muted)">—</span>';
+
+      const cat = determineTroopCategory(troops.G, troops.M, troops.S);
+
+      tr.innerHTML = `
+        <td><strong>${escapeHtml(m.name)}</strong></td>
+        <td style="white-space:nowrap;">${escapeHtml(m.joinDate)}<br><button type="button" style="white-space:nowrap;margin-top:3px;padding:1px 7px;font-size:0.75em;border-radius:8px;border:1px solid ${m.beforeReset ? '#e6a418' : 'var(--border)'};background:${m.beforeReset ? '#fff3cd' : 'transparent'};color:${m.beforeReset ? '#7a5b00' : 'var(--text-muted)'};cursor:pointer;" title="Joined before or after the daily reset (17:00 UTC) on the join day. Before: takes part in the events starting that day. Click to change." onclick="toggleJoinedBeforeReset('${escapeAttr(m.name)}')">${m.beforeReset ? '🌅 before reset' : 'after reset'}</button></td>
+        <td style="text-align:center">${heroHtml}</td>
+        <td style="text-align:center">${categoryBadge(cat)}</td>
+        <td style="text-align:center">${troopBadge('g', troops.G)}</td>
+        <td style="text-align:center">${troopBadge('m', troops.M)}</td>
+        <td style="text-align:center">${troopBadge('s', troops.S)}</td>
+        <td style="text-align:center">${troopBadge('e', troops.E)}</td>
+        <td style="text-align:center">${troopBadge('c', troops.C)}</td>
+        ${isLoggedIn ? `<td class="member-actions">
+          <button title="Edit troops" onclick="quickEditTroop('${escapeAttr(m.name)}')">&nbsp;⚔️&nbsp;</button>
+          <button title="Edit hero" onclick="quickEditHero('${escapeAttr(m.name)}')">&nbsp;🦸&nbsp;</button>
+          <button title="Rename" onclick="renameMember('${escapeAttr(m.name)}')">&nbsp;✏️&nbsp;</button>
+        </td>` : ''}
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Troop category order for sorting (low → high)
+  const CATEGORY_ORDER = [null, 'G4', 'G5', 'G6', 'G7', 'T7', 'G8', 'T8', 'G9', 'T9'];
+
+  function determineTroopCategory(gLevel, mLevel, sLevel) {
+    const g = Number(gLevel);
+    const m = Number(mLevel);
+    const s = Number(sLevel);
+    const hasG = !isNaN(g) && g > 0;
+    const hasM = !isNaN(m) && m > 0;
+    const hasS = !isNaN(s) && s > 0;
+    if (!hasG) return null;
+    if (g >= 9 && hasM && m >= 9 && hasS && s >= 9) return 'T9';
+    if (g >= 9) return 'G9';
+    if (g >= 8 && hasM && m >= 8 && hasS && s >= 8) return 'T8';
+    if (g >= 8) return 'G8';
+    if (g >= 7 && hasM && m >= 7 && hasS && s >= 7) return 'T7';
+    if (g >= 7) return 'G7';
+    if (g >= 6) return 'G6';
+    if (g >= 5) return 'G5';
+    if (g >= 4) return 'G4';
+    return null;
+  }
+
+  function categoryBadge(cat) {
+    if (!cat) return '<span style="color:var(--text-muted)">—</span>';
+    const colors = {
+      G4: { bg: '#c0c0c0', fg: '#333333' },
+      G5: { bg: '#c0c0c0', fg: '#333333' },
+      G6: { bg: '#fdd835', fg: '#333333' },
+      G7: { bg: '#ff9800', fg: '#ffffff' },
+      T7: { bg: '#e53935', fg: '#ffffff' },
+      G8: { bg: '#00bcd4', fg: '#ffffff' },
+      T8: { bg: '#1565c0', fg: '#ffffff' },
+      G9: { bg: '#ba68c8', fg: '#ffffff' },
+      T9: { bg: '#7b1fa2', fg: '#ffffff' }
+    };
+    const c = colors[cat] || { bg: '#e0e0e0', fg: '#424242' };
+    return `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.75em;font-weight:700;background:${c.bg};color:${c.fg}">${cat}</span>`;
+  }
+
+  function troopBadge(type, level) {
+    if (!level) return '<span style="color:var(--text-muted)">—</span>';
+    return `<span class="troop-badge ${type}">${level}</span>`;
+  }
+
+  function getHeroBg(lvl) {
+    if (lvl > 500) return '#4a148c';
+    if (lvl > 400) return '#0d47a1';
+    if (lvl > 300) return '#1b5e20';
+    if (lvl > 200) return '#fbc02d';
+    if (lvl > 100) return '#37474f';
+    return '#4e342e';
+  }
+  function getHeroFg(lvl) {
+    if (lvl > 500) return '#e1bee7';
+    if (lvl > 400) return '#bbdefb';
+    if (lvl > 300) return '#c8e6c9';
+    if (lvl > 200) return '#3e2723';
+    if (lvl > 100) return '#eceff1';
+    return '#d7ccc8';
+  }
+
+  // TROOP BULK FORM
+  let loadedTroopLevels = {};
+  function loadMemberTroops() {
+    const name = document.getElementById('troopMemberSelect').value;
+    const key = name ? name.toLowerCase() : '';
+    const troops = troopData[key] || {};
+    loadedTroopLevels = { ...troops };
+    ['G', 'S', 'M', 'E', 'C'].forEach(t => {
+      document.getElementById('troop' + t).value = troops[t] || '';
+    });
+  }
+  function quickEditTroop(name) {
+    document.getElementById('troopMemberSelect').value = name;
+    switchTab('troopTab');
+    loadMemberTroops();
+    document.getElementById('troopG').focus();
+  }
+  function quickEditHero(name) {
+    document.getElementById('heroMemberSelect').value = name;
+    switchTab('heroTab');
+    document.getElementById('heroLevelInput').focus();
+  }
+  function quickEditCarter(name) {
+    document.getElementById('carterMemberSelect').value = name;
+    switchTab('carterTab');
+    document.getElementById('carterLevelInput').focus();
+  }
+
+  function sortTable(field) {
+    if (sortField === field) sortAsc = !sortAsc;
+    else { sortField = field; sortAsc = true; }
+    renderTable();
+  }
+
+  // TAB SWITCHING — groups, each showing its own tabs; switching group returns
+  // to the tab last used there (else its first visible tab). A tab can be opened
+  // from a link: members.html#<tab id>.
+  const lastTabInGroup = {};
+  function firstTabOf(group) {
+    const b = [...document.querySelectorAll(`.tab-btn-inner[data-group="${group}"]`)].find(x => x.style.display !== 'none');
+    return b ? b.getAttribute('data-tab') : null;
+  }
+  function switchGroup(group) {
+    const tab = lastTabInGroup[group] || firstTabOf(group);
+    if (tab) switchTab(tab);
+  }
+  function switchTab(tabId, btn) {
+    btn = document.querySelector(`.tab-btn-inner[data-tab="${tabId}"]`) || btn;
+    if (!btn) return;
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn-inner').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId)?.classList.add('active');
+    btn.classList.add('active');
+    const group = btn.getAttribute('data-group');
+    lastTabInGroup[group] = tabId;
+    document.querySelectorAll('.tab-btn-inner[data-group]').forEach(b => { b.hidden = b.getAttribute('data-group') !== group; });
+    document.querySelectorAll('.tab-group').forEach(g => g.classList.toggle('active', g.getAttribute('data-group') === group));
+    document.body.classList.toggle('wide-tab', tabId === 'chestOverviewTab');
+    if (tabId === 'chestOverviewTab' && window.ChestOverview) window.ChestOverview.load();
+  }
+  // Tabs that moved to the Admin page: old links go there.
+  const ADMIN_PAGE_TABS = ['manualChestsTab', 'chestNameFixTab', 'ocrTab', 'chestValuesTab', 'exemptTab', 'linkFormerTab', 'transfersTab', 'accountsTab', 'superiorsTab', 'pointTargetsTab'];
+  (function openTabFromLink() {
+    const tab = (location.hash || '').slice(1);
+    if (ADMIN_PAGE_TABS.indexOf(tab) !== -1) { location.replace('admin.html#' + tab); return; }
+    if (tab && document.querySelector(`.tab-btn-inner[data-tab="${tab}"]`)) document.addEventListener('DOMContentLoaded', () => switchTab(tab));
+  })();
+
+  // TROOP BULK ENTRY
+  async function submitAllTroops() {
+    const playerName = document.getElementById('troopMemberSelect').value;
+    const date = document.getElementById('troopDateInput').value;
+    const notes = document.getElementById('troopNotesInput').value.trim();
+    const status = document.getElementById('troopStatus');
+    status.textContent = ''; status.className = 'status';
+    if (!playerName) { status.textContent = 'Please select a member.'; status.className = 'status err'; return; }
+    const customTimestamp = date ? date + 'T12:00:00Z' : null;
+    const types = ['G', 'S', 'M', 'E', 'C'];
+    const changes = [];
+    for (const t of types) {
+      const raw = document.getElementById('troop' + t).value;
+      if (raw === '') continue;
+      const level = parseInt(raw, 10);
+      const isC = t === 'C';
+      if (isNaN(level) || (isC ? (level < 1 || level > 500) : (level < 1 || level > 9))) {
+        status.textContent = `${t}: ${isC ? 'must be 1-500' : 'must be 1-9'}.`;
+        status.className = 'status err'; return;
+      }
+      if (level !== (loadedTroopLevels[t] || 0)) changes.push({ type: t, level });
+    }
+    if (changes.length === 0) { status.textContent = 'No changes detected.'; status.className = 'status err'; return; }
+    status.textContent = `Saving ${changes.length} change(s)...`;
+    try {
+      const results = await Promise.all(
+        changes.map(c => callFunction('addTroopEntry', [playerName, c.type, c.level, notes, customTimestamp]))
+      );
+      const ok = results.filter(r => r && r.success).length;
+      const fail = results.length - ok;
+      const key = playerName.toLowerCase();
+      if (!troopData[key]) troopData[key] = {};
+      changes.forEach(c => { troopData[key][c.type] = c.level; });
+      loadedTroopLevels = { ...troopData[key] };
+      renderTable();
+      status.textContent = fail ? `${ok} saved, ${fail} failed.` : `${ok} troop level(s) updated for ${playerName}.`;
+      status.className = fail ? 'status err' : 'status ok';
+      document.getElementById('troopNotesInput').value = '';
+    } catch (err) {
+      status.textContent = 'Error: ' + err.message;
+      status.className = 'status err';
+    }
+  }
+
+  // HERO LEVEL ENTRY
+  async function submitHeroLevel() {
+    const playerName = document.getElementById('heroMemberSelect').value;
+    const levelRaw = document.getElementById('heroLevelInput').value;
+    const date = document.getElementById('heroDateInput').value;
+    const status = document.getElementById('heroStatus');
+    status.textContent = ''; status.className = 'status';
+
+    if (!playerName) { status.textContent = 'Please select a member.'; status.className = 'status err'; return; }
+    const level = parseInt(levelRaw, 10);
+    if (isNaN(level) || level < 0) { status.textContent = 'Enter a valid hero level (0+).'; status.className = 'status err'; return; }
+
+    status.textContent = 'Saving...';
+    const customTimestamp = date ? date + 'T12:00:00Z' : null;
+    try {
+      const result = await callFunction('recordHeroLevel', [playerName, level, customTimestamp]);
+      if (result && result.success) {
+        status.textContent = result.message || `Hero level ${level} saved for ${playerName}.`;
+        status.className = 'status ok';
+        document.getElementById('heroLevelInput').value = '';
+        heroData[playerName.toLowerCase()] = { level, timestamp: date || new Date().toISOString() };
+        renderTable();
+      } else {
+        status.textContent = result?.message || 'Failed to save.';
+        status.className = 'status err';
+      }
+    } catch (err) {
+      status.textContent = 'Error: ' + err.message;
+      status.className = 'status err';
+    }
+  }
+
+  // ADD MEMBER
+  async function addNewMember() {
+    const name = document.getElementById('newMemberName').value.trim();
+    const joinDate = document.getElementById('newMemberJoinDate').value;
+    const status = document.getElementById('addMemberStatus');
+    status.textContent = ''; status.className = 'status';
+    if (!name) { status.textContent = 'Name is required.'; status.className = 'status err'; return; }
+
+    status.textContent = 'Adding...';
+    try {
+      const result = await callFunction('addMember', [name, joinDate, 0]);
+      if (result && result.success) {
+        // Joined before the reset on the join day: saved in the Members tab's "Joined Before Reset" column
+        const box = document.getElementById('newMemberBeforeReset');
+        if (box.checked) {
+          const r = await callFunction('setMemberJoinedBeforeReset', [name, true]).catch(e => ({ success: false, message: e.message }));
+          if (!r || !r.success) showToast('Added, but "joined before reset" was not saved: ' + ((r && r.message) || 'error'), 'error');
+        }
+        box.checked = false;
+        status.textContent = result.message || `Added "${name}".`;
+        status.className = 'status ok';
+        document.getElementById('newMemberName').value = '';
+        loadAllData();
+      } else {
+        status.textContent = result?.message || 'Failed to add member.';
+        status.className = 'status err';
+      }
+    } catch (err) { status.textContent = 'Error: ' + err.message; status.className = 'status err'; }
+  }
+
+  // JOINED BEFORE / AFTER THE RESET on the join day
+  async function toggleJoinedBeforeReset(name) {
+    const member = membersData.find(m => m.name === name);
+    if (!member) return;
+    const next = !member.beforeReset;
+    if (!confirm(`${name} joined ${next ? 'BEFORE' : 'AFTER'} the reset (17:00 UTC) on their join day?\n\n`
+      + (next ? 'They take part in the events starting that day (penalties and results count them).' : 'The events starting that day are exempt for them.'))) return;
+    try {
+      const r = await callFunction('setMemberJoinedBeforeReset', [name, next]);
+      if (!r || !r.success) { showToast((r && r.message) || 'Not saved', 'error'); return; }
+      member.beforeReset = next;
+      renderTable();
+      showToast(r.message || 'Saved', 'success');
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  }
+
+  // RENAME MEMBER (inline prompt)
+  async function renameMember(oldName) {
+    const newName = prompt(`New name for "${oldName}":`, oldName);
+    if (!newName || newName === oldName) return;
+    try {
+      const result = await callFunction('updateMemberName', [oldName, newName]);
+      showToast(result?.message || 'Done', result?.success ? 'success' : 'error');
+      if (result?.success) {
+        const member = membersData.find(m => m.name === oldName);
+        if (member) member.name = newName;
+        // Update troop/hero data keys
+        const oldKey = oldName.toLowerCase();
+        const newKey = newName.toLowerCase();
+        if (troopData[oldKey]) { troopData[newKey] = troopData[oldKey]; delete troopData[oldKey]; }
+        if (heroData[oldKey]) { heroData[newKey] = heroData[oldKey]; delete heroData[oldKey]; }
+        populateSelects();
+        renderTable();
+        // the server renamed them everywhere: reload the lists already shown with the old name
+      }
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+  }
+
+  async function submitRemoveMember() {
+    const name = document.getElementById('removeMemberSelect').value;
+    const endDate = document.getElementById('removeEndDateInput').value;
+    const reason = document.getElementById('removeReasonInput').value.trim();
+    const status = document.getElementById('removeMemberStatus');
+    status.textContent = ''; status.className = 'status';
+    if (!name) { status.textContent = 'Please select a member.'; status.className = 'status err'; return; }
+    if (!confirm(`Remove "${name}" and archive to Former Members?`)) return;
+    try {
+      const result = await callFunction('removeMember', [name, endDate, reason]);
+      status.textContent = result?.message || 'Done';
+      status.className = result?.success ? 'status ok' : 'status err';
+      showToast(result?.message || 'Done', result?.success ? 'success' : 'error');
+      if (result?.success) {
+        membersData = membersData.filter(m => m.name !== name);
+        delete troopData[name.toLowerCase()];
+        delete heroData[name.toLowerCase()];
+        document.getElementById('removeReasonInput').value = '';
+        populateSelects();
+        renderTable();
+        document.getElementById('memberCount').textContent = `${membersData.length} members`;
+      }
+    } catch (err) {
+      status.textContent = 'Error: ' + err.message;
+      status.className = 'status err';
+      showToast('Error: ' + err.message, 'error');
+    }
+  }
+
+  // ===========================
+  // CARTER LEVEL ENTRY
+  // ===========================
+  async function submitCarterLevel() {
+    const playerName = document.getElementById('carterMemberSelect').value;
+    const levelRaw = document.getElementById('carterLevelInput').value;
+    const date = document.getElementById('carterDateInput').value;
+    const status = document.getElementById('carterStatus');
+    status.textContent = ''; status.className = 'status';
+
+    if (!playerName) { status.textContent = 'Please select a member.'; status.className = 'status err'; return; }
+    const level = parseInt(levelRaw, 10);
+    if (isNaN(level) || level < 1 || level > 500) { status.textContent = 'Enter a valid Carter level (1–500).'; status.className = 'status err'; return; }
+
+    status.textContent = 'Saving...';
+    const customTimestamp = date ? date + 'T12:00:00Z' : null;
+    try {
+      const result = await callFunction('addTroopEntry', [playerName, 'C', level, '', customTimestamp]);
+      if (result && result.success) {
+        status.textContent = result.message || `Carter level ${level} saved for ${playerName}.`;
+        status.className = 'status ok';
+        document.getElementById('carterLevelInput').value = '';
+        const key = playerName.toLowerCase();
+        if (!troopData[key]) troopData[key] = {};
+        troopData[key].C = level;
+        renderTable();
+      } else {
+        status.textContent = result?.message || 'Failed to save.';
+        status.className = 'status err';
+      }
+    } catch (err) {
+      status.textContent = 'Error: ' + err.message;
+      status.className = 'status err';
+    }
+  }
+
+  // ===========================
+  // HERO BATCH ENTRY (Toggle)
+  // ===========================
+  let heroBatchQueue = {};
+
+  function toggleHeroBatch() {
+    const panel = document.getElementById('heroBatchPanel');
+    if (!panel) return;
+    const isVisible = panel.style.display !== 'none';
+    if (isVisible) { panel.style.display = 'none'; return; }
+    panel.style.display = 'block';
+    heroBatchQueue = {};
+    document.getElementById('heroBatchStatus').textContent = '';
+    renderHeroBatchTable();
+    document.getElementById('heroMemberSelect').focus();
+  }
+
+  function renderHeroBatchTable() {
+    const tbody = document.getElementById('heroBatchBody');
+    if (!tbody) return;
+    const countEl = document.getElementById('heroBatchCount');
+    const keys = Object.keys(heroBatchQueue);
+    if (countEl) countEl.textContent = keys.length;
+    if (keys.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-muted);">No entries queued yet. Use the Member dropdown above and press Enter.</td></tr>';
+      return;
+    }
+    let html = '';
+    keys.forEach(key => {
+      const entry = heroBatchQueue[key];
+      html += '<tr style="border-bottom:1px solid #3d3833;">'
+        + '<td style="padding:4px 8px;">' + escapeHtml(entry.name) + '</td>'
+        + '<td style="text-align:center;padding:4px 8px;font-weight:700;color:var(--primary);">' + entry.level + '</td>'
+        + '<td style="text-align:center;padding:4px 8px;"><button onclick="removeHeroBatchEntry(\'' + escapeAttr(key) + '\')" style="background:none;border:none;color:#ef6f61;cursor:pointer;font-size:1.1em;" title="Remove">✕</button></td>'
+        + '</tr>';
+    });
+    tbody.innerHTML = html;
+  }
+
+  function addToHeroBatch() {
+    const status = document.getElementById('heroStatus');
+    status.textContent = ''; status.className = 'status';
+    const memberSel = document.getElementById('heroMemberSelect');
+    const levelInput = document.getElementById('heroLevelInput');
+    const name = memberSel.value;
+    const level = parseInt(levelInput.value, 10);
+    if (!name) { status.textContent = 'Select a member.'; status.className = 'status err'; return; }
+    if (isNaN(level) || level < 0) { status.textContent = 'Enter a valid hero level.'; status.className = 'status err'; return; }
+    heroBatchQueue[name.toLowerCase()] = { name: name, level: level };
+    status.textContent = '\u2713 Queued: ' + name + ' \u2192 Level ' + level;
+    status.className = 'status ok';
+    levelInput.value = '';
+    memberSel.value = '';
+    renderHeroBatchTable();
+    memberSel.focus();
+  }
+
+  function removeHeroBatchEntry(key) {
+    delete heroBatchQueue[key];
+    renderHeroBatchTable();
+  }
+
+  async function saveHeroBatch() {
+    const status = document.getElementById('heroBatchStatus');
+    status.textContent = ''; status.className = 'status';
+    const keys = Object.keys(heroBatchQueue);
+    if (keys.length === 0) { status.textContent = 'No entries queued.'; status.className = 'status err'; return; }
+    const dateVal = document.getElementById('heroDateInput').value;
+    const customTimestamp = dateVal ? dateVal + 'T12:00:00Z' : null;
+    const records = keys.map(k => ({ playerName: heroBatchQueue[k].name, level: heroBatchQueue[k].level }));
+    status.textContent = 'Saving ' + records.length + ' entries...';
+    try {
+      const result = await callFunction('batchRecordHeroLevel', [records, customTimestamp]);
+      if (result && result.success) {
+        const saved = result.successCount || records.length;
+        status.textContent = saved + ' hero level(s) saved!' + (result.errors && result.errors.length ? ' Errors: ' + result.errors.join('; ') : '');
+        status.className = 'status ok';
+        const ts = dateVal || new Date().toISOString().split('T')[0];
+        keys.forEach(k => { heroData[heroBatchQueue[k].name.toLowerCase()] = { level: heroBatchQueue[k].level, timestamp: ts }; });
+        renderTable();
+        heroBatchQueue = {};
+        renderHeroBatchTable();
+      } else { status.textContent = result?.message || 'Failed to save.'; status.className = 'status err'; }
+    } catch (err) { status.textContent = 'Error: ' + err.message; status.className = 'status err'; }
+  }
+
+  // ===========================
+  // CARTER BATCH ENTRY (Toggle)
+  // ===========================
+  let carterBatchQueue = {};
+
+  function toggleCarterBatch() {
+    const panel = document.getElementById('carterBatchPanel');
+    if (!panel) return;
+    const isVisible = panel.style.display !== 'none';
+    if (isVisible) { panel.style.display = 'none'; return; }
+    panel.style.display = 'block';
+    carterBatchQueue = {};
+    document.getElementById('carterBatchStatus').textContent = '';
+    renderCarterBatchTable();
+    document.getElementById('carterMemberSelect').focus();
+  }
+
+  function renderCarterBatchTable() {
+    const tbody = document.getElementById('carterBatchBody');
+    if (!tbody) return;
+    const countEl = document.getElementById('carterBatchCount');
+    const keys = Object.keys(carterBatchQueue);
+    if (countEl) countEl.textContent = keys.length;
+    if (keys.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-muted);">No entries queued yet. Use the Member dropdown above and press Enter.</td></tr>';
+      return;
+    }
+    let html = '';
+    keys.forEach(key => {
+      const entry = carterBatchQueue[key];
+      html += '<tr style="border-bottom:1px solid #3d3833;">'
+        + '<td style="padding:4px 8px;">' + escapeHtml(entry.name) + '</td>'
+        + '<td style="text-align:center;padding:4px 8px;font-weight:700;color:var(--primary);">' + entry.level + '</td>'
+        + '<td style="text-align:center;padding:4px 8px;"><button onclick="removeCarterBatchEntry(\'' + escapeAttr(key) + '\')" style="background:none;border:none;color:#ef6f61;cursor:pointer;font-size:1.1em;" title="Remove">✕</button></td>'
+        + '</tr>';
+    });
+    tbody.innerHTML = html;
+  }
+
+  function addToCarterBatch() {
+    const status = document.getElementById('carterStatus');
+    status.textContent = ''; status.className = 'status';
+    const memberSel = document.getElementById('carterMemberSelect');
+    const levelInput = document.getElementById('carterLevelInput');
+    const name = memberSel.value;
+    const level = parseInt(levelInput.value, 10);
+    if (!name) { status.textContent = 'Select a member.'; status.className = 'status err'; return; }
+    if (isNaN(level) || level < 1 || level > 500) { status.textContent = 'Carter level must be 1\u2013500.'; status.className = 'status err'; return; }
+    carterBatchQueue[name.toLowerCase()] = { name: name, level: level };
+    status.textContent = '\u2713 Queued: ' + name + ' \u2192 Level ' + level;
+    status.className = 'status ok';
+    levelInput.value = '';
+    memberSel.value = '';
+    renderCarterBatchTable();
+    memberSel.focus();
+  }
+
+  function removeCarterBatchEntry(key) {
+    delete carterBatchQueue[key];
+    renderCarterBatchTable();
+  }
+
+  async function saveCarterBatch() {
+    const status = document.getElementById('carterBatchStatus');
+    status.textContent = ''; status.className = 'status';
+    const keys = Object.keys(carterBatchQueue);
+    if (keys.length === 0) { status.textContent = 'No entries queued.'; status.className = 'status err'; return; }
+    const dateVal = document.getElementById('carterDateInput').value;
+    const customTimestamp = dateVal ? dateVal + 'T12:00:00Z' : null;
+    const records = keys.map(k => ({ playerName: carterBatchQueue[k].name, level: carterBatchQueue[k].level }));
+    status.textContent = 'Saving ' + records.length + ' entries...';
+    try {
+      const result = await callFunction('batchRecordCarterLevel', [records, customTimestamp]);
+      if (result && result.success) {
+        const saved = result.successCount || records.length;
+        status.textContent = saved + ' Carter level(s) saved!' + (result.errors && result.errors.length ? ' Errors: ' + result.errors.join('; ') : '');
+        status.className = 'status ok';
+        records.forEach(r => { const key = r.playerName.toLowerCase(); if (!troopData[key]) troopData[key] = {}; troopData[key].C = r.level; });
+        renderTable();
+        carterBatchQueue = {};
+        renderCarterBatchTable();
+      } else { status.textContent = result?.message || 'Failed to save.'; status.className = 'status err'; }
+    } catch (err) { status.textContent = 'Error: ' + err.message; status.className = 'status err'; }
+  }
+
+  // UTILITIES
+  function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+  function escapeAttr(str) {
+    return String(str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  }
+  function showToast(message, type) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'toast ' + (type || '');
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 3000);
+  }
+</script>
+
+<script>
+  // Database-only tabs (as on Champions): they call the Worker directly with
+  // { action: ... } (config.js adds the sign-in pass), not google.script.run.
+  // Times as on Champions: '2026-09-30 11:21 UTC'.
+  window.cccDateTime = window.cccDateTime || function (v) { const d = new Date(v); return isNaN(d.getTime()) ? String(v || '') : d.toISOString().slice(0, 16).replace('T', ' ') + ' UTC'; };
+    // 📦 Chest Points: every member's chest points over the last 5 periods (getRecentActivePeriodChestPoints),
+    // coloured against their target for that period (getPointTargets per period, as on 🎯 Point Targets).
+    window.ChestOverview = (function () {
+      let data = null, targets = {}, sort = { col: 'member', dir: 1 };
+      const esc = (t) => { const d = document.createElement('div'); d.textContent = t == null ? '' : String(t); return d.innerHTML; };
+      const $ = (id) => document.getElementById(id);
+      const COLORS = { green: '#2e7d32', orange: '#ef6c00', red: '#c62828' };
+      const status = (msg) => { const el = $('cpoStatus'); el.style.display = msg ? '' : 'none'; el.className = 'status err'; el.textContent = msg || ''; };
+      async function load(force) {
+        if (data && !force) return render();
+        status('');
+        $('cpoBody').innerHTML = '<tr><td style="padding:8px;color:var(--text-muted);">Loading…</td></tr>';
+        try {
+          const res = await fetch(window.GAS_WEB_APP_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'getRecentActivePeriodChestPoints', limitPeriods: 5 }) });
+          const r = await res.json();
+          if (!r || !r.success) throw new Error((r && (r.message || r.error)) || 'Could not load the chest points');
+          const lists = await Promise.all(r.periods.map(p => callFunction('getPointTargets', [p.periodName]).catch(() => null)));
+          targets = {};
+          r.periods.forEach((p, i) => {
+            const t = {};
+            Object.entries((lists[i] && lists[i].targets) || {}).forEach(([m, v]) => { t[m.toLowerCase()] = Number(v) || 0; });
+            targets[p.key] = t;
+          });
+          data = r;
+          render();
+        } catch (e) {
+          $('cpoBody').innerHTML = '';
+          status(e.message);
+        }
+      }
+      function cell(m, p, i) {
+        const res = m.periodResults[i] || { points: 0 };
+        const join = m.joinDate || '';
+        if (join && p.endDate && join > p.endDate) return { text: '-', value: -1 };
+        const periodTarget = p.targetPoints || 3000;
+        const own = targets[p.key][m.member.toLowerCase()] || 0;
+        const target = own || periodTarget;
+        const color = res.points >= target ? 'green' : res.points >= target * 0.9 ? 'orange' : 'red';
+        const joined = join && join >= p.startDate && join <= p.endDate ? '*' : '';
+        // custom: the member's own target (🎯 Point Targets) when it isn't the period's target
+        return { text: res.points.toLocaleString() + joined, value: res.points, color, target, custom: own && own !== periodTarget ? own : 0 };
+      }
+      function sortBy(col) {
+        sort = sort.col === col ? { col, dir: -sort.dir } : { col, dir: col === 'member' ? 1 : -1 };
+        render();
+      }
+      function render() {
+        if (!data) return;
+        const periods = data.periods;
+        const arrow = (c) => sort.col === c ? (sort.dir > 0 ? ' ▲' : ' ▼') : '';
+        $('cpoHead').innerHTML = '<tr><th data-cpo="member" style="text-align:left;padding:6px 8px;cursor:pointer;user-select:none;">Member' + arrow('member') + '</th>' +
+          periods.map((p, i) => '<th data-cpo="' + i + '" style="text-align:right;padding:6px 8px;cursor:pointer;user-select:none;" title="' + esc(p.startDate + ' → ' + p.endDate) + '">' +
+            esc(p.periodName) + arrow(String(i)) + '<div style="font-weight:400;font-size:0.85em;color:var(--text-muted);">' + esc(p.startDate.slice(5) + ' → ' + p.endDate.slice(5)) + '<br>🎯 ' + esc((p.targetPoints || 3000).toLocaleString()) + '</div></th>').join('') + '</tr>';
+        $('cpoHead').querySelectorAll('[data-cpo]').forEach(th => th.addEventListener('click', () => sortBy(th.dataset.cpo)));
+        const term = ($('cpoSearch').value || '').toLowerCase().trim();
+        const customOnly = $('cpoCustomOnly').checked;
+        const rows = data.members.filter(m => !term || m.member.toLowerCase().includes(term))
+          .map(m => ({ m, cells: periods.map((p, i) => cell(m, p, i)) }))
+          .filter(r => !customOnly || r.cells.some(c => c.custom));
+        rows.sort((a, b) => sort.col === 'member' ? sort.dir * a.m.member.localeCompare(b.m.member)
+          : sort.dir * (a.cells[+sort.col].value - b.cells[+sort.col].value) || a.m.member.localeCompare(b.m.member));
+        $('cpoBody').innerHTML = rows.length ? rows.map(({ m, cells }) => '<tr style="border-top:1px solid var(--border);"><td style="padding:6px 8px;text-align:left;">' + esc(m.member) + '</td>' +
+          cells.map(c => '<td style="padding:6px 8px;text-align:right;font-weight:600;' + (c.color ? 'color:' + COLORS[c.color] + ';' : 'color:var(--text-muted);') + '"' +
+            (c.target ? ' title="Target ' + c.target.toLocaleString() + (c.custom ? ' (custom target)' : ' (period target)') + '"' : '') + '>' + esc(c.text) +
+            (c.custom ? '<div style="font-size:0.85em;font-weight:400;color:var(--text-muted);white-space:nowrap;">🎯 ' + esc(c.custom.toLocaleString()) + '</div>' : '') + '</td>').join('') + '</tr>').join('')
+          : '<tr><td colspan="' + (periods.length + 1) + '" style="padding:8px;color:var(--text-muted);">No members match this filter.</td></tr>';
+      }
+      return { load, render };
+    })();
+</script>
+</body>
+</html>

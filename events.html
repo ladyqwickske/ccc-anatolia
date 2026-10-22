@@ -1,0 +1,2085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cCc Ascendants - Events</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <script src="perf-debug.js"></script>
+  <script src="config.js"></script>
+  <script src="site-config.js"></script>
+  <script src="portal-shim.js"></script>
+  <script src="portal-auth.js"></script>
+  <style>
+    :root {
+      --primary: #7c99b4;
+      --primary-soft: #8eb8e5;
+      --primary-strong: #8eb8e5;
+      --primary-hover: #6f93b8;
+      --accent: #ffd24d;
+      --accent-light: #2c3440;
+      --accent-strong: #e6a418;
+      --accent-deep: #ffb300;
+      --bg-dark: #121110;
+      --bg-card: rgba(40, 36, 33, 0.96);
+      --bg-card-soft: #34302c;
+      --bg-page: #1c1a18;
+      --bg-page-alt: #2b2622;
+      --text: #ece6df;
+      --text-muted: #b3aca4;
+      --success: #8fc79a;
+      --danger: #ffb74d;
+      --border: #4a4540;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg-page-alt) 0%, var(--bg-page) 55%, var(--accent-light) 100%);
+      color: var(--text); min-height: 100vh; background-attachment: fixed;
+      padding: 60px 8px 80px 8px;
+    }
+    .tab-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; justify-content: center; background: rgba(42, 38, 35, 0.96);
+      border-bottom: 2px solid var(--primary-soft);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .tab-nav a {
+      color: var(--text-muted); text-decoration: none; padding: 12px 18px;
+      font-size: 0.95em; font-weight: 500; border-bottom: 3px solid transparent;
+    }
+    .tab-nav a:hover { color: var(--primary); }
+    .tab-nav a.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .nav-icon { width: 18px; height: 18px; vertical-align: middle; margin-right: 4px; }
+    .login-bar {
+      position: fixed; top: 0; right: 8px; z-index: 1001;
+      display: flex; align-items: center; gap: 8px; padding: 8px;
+    }
+    .login-bar .user-email { font-size: 0.8em; color: var(--primary); }
+    .login-bar button {
+      background: var(--primary); color: #ffffff; border: none; border-radius: 6px;
+      padding: 6px 14px; cursor: pointer; font-weight: 600; font-size: 0.85em;
+    }
+    .login-bar .logout-btn { background: var(--accent-light); color: var(--accent-deep); }
+    .container {
+      max-width: 1200px; margin: 0 auto; background: var(--bg-card);
+      border-radius: 16px; box-shadow: 0 12px 30px rgba(73, 44, 29,0.12); padding: 24px 16px; border: 1px solid rgba(142, 184, 229,0.45);
+    }
+    h1 { color: var(--primary); text-align: center; margin-bottom: 4px; font-size: 1.8em; }
+    .site-logo { width: 64px; height: 64px; display: block; margin: 0 auto 8px auto; }
+    .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 16px; font-size: 0.9em; }
+
+    /* Admin panel */
+    .admin-panel { display: none; background: linear-gradient(180deg, #2a2623 0%, var(--bg-card-soft) 100%); border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 1px solid var(--border); }
+    .admin-panel.visible { display: block; }
+    .admin-panel h3 { color: var(--primary); margin-bottom: 12px; font-size: 1em; }
+    .form-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .form-row input, .form-row select {
+      flex: 1; min-width: 120px; padding: 8px 12px;
+      background: #2a2623; border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-size: 0.9em;
+    }
+    .form-row input:focus, .form-row select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(124, 153, 180,0.18); }
+    .btn {
+      background: var(--primary); color: #fff; border: none; border-radius: 8px;
+      padding: 8px 16px; cursor: pointer; font-weight: 600; font-size: 0.9em;
+    }
+    .btn:hover { background: var(--primary-hover); }
+    .btn.danger { background: var(--danger); color: #fff; }
+    .btn.secondary { background: var(--accent-light); color: var(--accent-deep); }
+
+    /* Tabs */
+    .sub-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+    .sub-tabs button {
+      background: var(--bg-card-soft); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px 8px 0 0; padding: 8px 16px; cursor: pointer; font-size: 0.9em;
+    }
+    .sub-tabs button.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+
+    /* Events Table */
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+    th { background: var(--bg-card-soft); color: var(--primary-hover); padding: 10px 8px; text-align: left; border-bottom: 2px solid var(--accent); cursor: pointer; user-select: none; }
+    th:hover { background: var(--accent-light); }
+    td { padding: 8px; border-bottom: 1px solid #3d3833; }
+    tr:hover { background: rgba(142, 184, 229,0.14); }
+
+    .method-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; font-weight: 600;
+    }
+    .method-chest { background: rgba(49,206,118,0.18); color: #8be5b1; }
+    .method-manual { background: rgba(37,143,218,0.18); color: #8ac1e5; }
+    .method-period { background: rgba(153,51,204,0.18); color: #c499d7; }
+
+    .filter-btn {
+      background: var(--bg-card-soft) !important; color: var(--text) !important; border: 1px solid var(--border) !important;
+      border-radius: 8px !important; padding: 5px 12px !important; font-size: 0.82em !important; font-weight: 500 !important;
+    }
+    .filter-btn.active { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
+
+    .event-actions button {
+      background: var(--bg-card-soft); color: var(--text); border: none; border-radius: 4px;
+      padding: 4px 8px; cursor: pointer; font-size: 0.8em; margin-right: 4px;
+    }
+    .event-actions button:hover { background: var(--accent-light); }
+
+    /* Participation Section */
+    .participation-section {
+      background: #34302c; border-radius: 12px; padding: 16px; margin-top: 16px; border: 1px solid var(--border);
+    }
+    .participation-section h3 { color: var(--primary); margin-bottom: 12px; }
+
+    /* Chest Types Checkbox List */
+    .chest-types-section { margin-bottom: 12px; }
+    .chest-types-section label { display: block; font-weight: 600; color: var(--text); margin-bottom: 4px; font-size: 0.9em; }
+    .chest-types-section .note { font-size: 0.8em; color: var(--text-muted); margin-top: 4px; }
+    #chestTypesList {
+      max-height: 200px; overflow-y: auto;
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 8px; background: #2a2623;
+    }
+    .checkbox-item { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 4px; cursor: pointer; }
+    .checkbox-item:hover { background: var(--accent-light); }
+    .checkbox-item input[type="checkbox"] { cursor: pointer; accent-color: var(--primary); }
+    .checkbox-item label { margin: 0; font-weight: normal; color: var(--text); cursor: pointer; font-size: 0.9em; }
+
+    .sub-tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab-panel { display: block; }
+
+    .loading { text-align: center; padding: 40px; color: var(--text-muted); }
+    .spinner {
+      display: inline-block; width: 24px; height: 24px;
+      border: 3px solid var(--border); border-top-color: var(--primary);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .toast {
+      position: fixed; bottom: 20px; right: 20px; z-index: 3000;
+      background: #2a2623; color: var(--text); padding: 12px 20px;
+      border-radius: 8px; font-size: 0.9em; display: none;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    }
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+    .nav-links { display: flex; }
+    .hamburger {
+      display: none; background: none; border: none; cursor: pointer; padding: 8px;
+      flex-direction: column; gap: 4px;
+    }
+    .hamburger span {
+      display: block; width: 22px; height: 2px; background: var(--primary); border-radius: 2px;
+    }
+    @media (max-width: 600px) {
+      body { padding: 50px 4px 70px 4px; }
+      .tab-nav { flex-wrap: wrap; padding: 0 8px; align-items: center; }
+      .hamburger { display: flex; }
+      .login-bar {
+        position: static; flex: 1; justify-content: flex-end;
+        padding: 4px 0; gap: 6px;
+      }
+      .nav-links { display: none; width: 100%; flex-direction: column; order: 10; }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 10px 12px; font-size: 0.9em; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="tab-nav">
+  <button class="hamburger" id="hamburgerBtn" onclick="document.getElementById('navLinks').classList.toggle('open')"><span></span><span></span><span></span></button>
+  <div class="login-bar">
+    <span class="user-email" id="userEmail" style="display:none"></span>
+    <button id="loginBtn" onclick="handleLogin()">🔑 Login</button>
+    <button id="logoutBtn" class="logout-btn" style="display:none" onclick="handleLogout()">Logout</button>
+  </div>
+  <div class="nav-links" id="navLinks">
+    <a href="dashboard.html"><img src="chest.png" class="nav-icon" alt=""> Dashboard</a>
+    <a href="events.html" class="active"><img src="events.png" class="nav-icon" alt=""> Events</a>
+    <a href="members.html"><img src="members.png" class="nav-icon" alt=""> Members</a>
+    <a href="profiling.html"><img src="profiling.png" class="nav-icon" alt=""> Profiling</a>
+    <a href="warnings.html"><img src="warning.png" class="nav-icon" alt=""> Warnings</a>
+    <a href="calendar.html"><img src="calendar.png" class="nav-icon" alt=""> Calendar</a>
+    <a href="bank.html"><img src="bank.png" class="nav-icon" alt=""> Bank</a>
+    <a href="admin.html"><img src="admin.png" class="nav-icon" alt=""> Admin</a>
+  </div>
+</nav>
+
+<div class="login-gate" id="loginGate" style="max-width:500px;margin:80px auto;text-align:center;background:var(--bg-card);border-radius:16px;padding:40px 24px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+  <h2 style="color:var(--primary);margin-bottom:12px;">🔒 Login Required</h2>
+  <p style="color:var(--text-muted);margin-bottom:20px;">You need to be logged in to view the Events page.</p>
+  <button class="btn" onclick="handleLogin()" style="padding:12px 32px;font-size:1em;">🔑 Login</button>
+</div>
+
+<div class="container" id="mainContent">
+  <img src="events.png" alt="cCc Ascendants" class="site-logo">
+  <h1>Events</h1>
+  <p class="subtitle">Event Management &amp; Participation Tracking</p>
+
+  <!-- Inner Tabs -->
+  <div class="sub-tabs" id="subTabs">
+    <button class="active" onclick="switchTab('manageTab', this)">📋 Manage</button>
+    <button onclick="switchTab('chestEventsTab', this)">📊 Chest Events</button>
+    <button onclick="switchTab('manualEventsTab', this)">✏️ Manual Events</button>
+    <button onclick="switchTab('troopEventsTab', this)">🎖️ Troop Events</button>
+    <button onclick="switchTab('heroEventsTab', this)">🦸 Hero Events</button>
+    <button onclick="switchTab('createTab', this)">➕ Create Event</button>
+    <button onclick="switchTab('typesTab', this)">⚙️ Event Types</button>
+  </div>
+
+  <!-- ===== MANAGE EVENTS TAB ===== -->
+  <div class="tab-panel" id="manageTab">
+    <div style="display:flex; gap:4px; margin-bottom:12px; flex-wrap:wrap; align-items:center;">
+      <span style="font-size:0.85em; color:var(--text-muted); margin-right:4px;">Show:</span>
+      <button class="btn filter-btn active" onclick="setEventFilter('active', this)">🟢 Active</button>
+      <button class="btn filter-btn" onclick="setEventFilter('recent', this)">🕐 Recent</button>
+      <button class="btn filter-btn" onclick="setEventFilter('all', this)">📋 All</button>
+      <button class="btn filter-btn" onclick="setEventFilter('ended', this)">📁 Ended</button>
+      <span style="font-size:0.85em; color:var(--text-muted); margin-left:8px;">Type:</span>
+      <select id="eventTypeFilter" onchange="setEventTypeFilter(this.value)" style="background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:4px 8px; font-size:0.82em; cursor:pointer;">
+        <option value="">All Types</option>
+      </select>
+    </div>
+    <div class="loading" id="eventsLoading"><div class="spinner"></div><br>Loading events...</div>
+    <div class="table-container" id="eventsTableContainer" style="display:none">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortEvents('eventName')">Event Name</th>
+            <th onclick="sortEvents('eventType')">Type</th>
+            <th onclick="sortEvents('startDate')">Start</th>
+            <th onclick="sortEvents('endDate')">End</th>
+            <th onclick="sortEvents('participationMethod')">Method</th>
+            <th onclick="sortEvents('targetPoints')">Target</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="eventsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== CHEST EVENTS TAB ===== -->
+  <div class="tab-panel" id="chestEventsTab" style="display:none">
+    <h3 style="color:var(--primary); margin-bottom:12px;">📊 Chest-Based Events</h3>
+    <p style="margin-bottom:12px; color:var(--text-muted); font-size:0.9em;">Select an event to view or recalculate chest-based participation.</p>
+    <div class="form-row" style="margin-bottom:12px;">
+      <select id="chestEventSelect" onchange="onChestEventSelected()" style="flex:1; min-width:200px; padding:8px 12px; background:#2a2623; border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:0.9em;">
+        <option value="">-- Select Chest Event --</option>
+      </select>
+      <button class="btn" id="chestRecalcBtn" style="display:none" onclick="calculateParticipation()">🔄 Recalculate</button>
+      <button class="btn secondary" id="chestFillBtn" style="display:none" onclick="fillNonParticipants()">Fill Non-Participants</button>
+      <button class="btn secondary" id="chestPenaltyPreviewBtn" style="display:none" onclick="previewPenalties()">👁️ Preview Penalties</button>
+      <button class="btn secondary" id="chestPenaltyBtn" style="display:none" onclick="recalculatePenalties()">⚖️ Recalculate Penalties</button>
+    </div>
+    <div class="participation-section" id="chestParticipationSection" style="display:none">
+      <h3 id="chestParticipationTitle">Participation</h3>
+      <div class="table-container">
+        <table>
+          <thead><tr id="chestParticipationHeaders"></tr></thead>
+          <tbody id="chestParticipationBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MANUAL EVENTS TAB ===== -->
+  <div class="tab-panel" id="manualEventsTab" style="display:none">
+    <h3 style="color:var(--primary); margin-bottom:12px;">✏️ Manual Events</h3>
+    <p style="margin-bottom:12px; color:var(--text-muted); font-size:0.9em;">Manually track participation for events.</p>
+    <div class="form-row" style="margin-bottom:12px;">
+      <select id="manualEventSelect" onchange="onManualEventSelected()" style="flex:1; min-width:200px; padding:8px 12px; background:#2a2623; border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:0.9em;">
+        <option value="">-- Select Manual Event --</option>
+      </select>
+    </div>
+    <div id="manualEntryForm" style="display:none; margin-bottom:12px; padding:12px; background:#2a2623; border:1px solid var(--border); border-radius:8px;">
+      <h4 style="color:var(--primary); margin-bottom:8px;">Add Entry</h4>
+      <div class="form-row">
+        <select id="manualMember" style="flex:1; min-width:140px; padding:8px 12px; background:#2a2623; border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:0.9em;">
+          <option value="">Select member...</option>
+        </select>
+        <input type="number" id="manualPoints" placeholder="Points" style="flex:0.5; min-width:80px; padding:8px 12px; background:#2a2623; border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:0.9em;" onkeypress="if(event.key==='Enter'){var bp=document.getElementById('manualBatchPanel');if(bp&&bp.style.display!=='none'){addToManualBatch();}else{saveManualEntry();}}">
+        <button class="btn" onclick="var bp=document.getElementById('manualBatchPanel');if(bp&&bp.style.display!=='none'){addToManualBatch();}else{saveManualEntry();}">💾 Save</button>
+        <button class="btn" style="background:#7c3aed;" onclick="toggleManualBatch()">📋 Batch</button>
+        <button class="btn secondary" onclick="fillNonParticipants()">Fill Non-Participants</button>
+        <button class="btn secondary" onclick="previewPenalties()">👁️ Preview Penalties</button>
+        <button class="btn secondary" onclick="recalculatePenalties()">⚖️ Recalculate Penalties</button>
+      </div>
+      <div id="manualEntryStatus" style="font-size:0.85em; margin-top:6px;"></div>
+      <!-- Manual Batch Panel -->
+      <div id="manualBatchPanel" style="display:none; margin-top:10px; padding:12px; border:1px solid var(--border); border-radius:8px; background:rgba(124,58,237,0.04);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <strong style="color:#7c3aed;">⚡ Batch Entry — <span id="manualBatchCount" style="color:var(--success);">0</span> queued</strong>
+          <div><button class="btn" style="background:var(--success); padding:4px 12px; font-size:0.85em;" onclick="saveManualBatch()">💾 Save All</button><button class="btn secondary" style="padding:4px 12px; font-size:0.85em; margin-left:4px;" onclick="toggleManualBatch()">✖ Close</button></div>
+        </div>
+        <p style="font-size:0.8em; color:var(--text-muted); margin-bottom:8px;">Use the Member dropdown & Points field above, press Enter to queue. Click Save All when done.</p>
+        <div id="manualBatchStatus" style="font-size:0.85em; margin-bottom:6px;"></div>
+        <div style="max-height:40vh; overflow-y:auto;"><table style="width:100%;">
+          <thead><tr><th style="text-align:left; padding:4px 8px;">Member</th><th style="text-align:center; padding:4px 8px; width:90px;">Queued Pts</th><th style="text-align:center; padding:4px 8px; width:40px;"></th></tr></thead>
+          <tbody id="manualBatchBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="participation-section" id="manualParticipationSection" style="display:none">
+      <h3 id="manualParticipationTitle">Participation</h3>
+      <div class="table-container">
+        <table>
+          <thead><tr id="manualParticipationHeaders"></tr></thead>
+          <tbody id="manualParticipationBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TROOP EVENTS TAB ===== -->
+  <div class="tab-panel" id="troopEventsTab" style="display:none">
+    <h3 style="color:var(--primary); margin-bottom:12px;">🎖️ Troop-Based Events</h3>
+    <p style="margin-bottom:12px; color:var(--text-muted); font-size:0.9em;">Track participation for troop-based events. Enter points, then calculate to compare against troop-level targets.</p>
+    <div class="form-row" style="margin-bottom:12px;">
+      <select id="troopEventSelect" onchange="onTroopEventSelected()" style="flex:1; min-width:200px; padding:8px 12px; background:#2a2623; border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:0.9em;">
+        <option value="">-- Select Troop Event --</option>
+      </select>
+    </div>
+    <div id="troopEntryForm" style="display:none; margin-bottom:12px; padding:12px; background:#2a2623; border:1px solid var(--border); border-radius:8px;">
+      <h4 style="color:var(--primary); margin-bottom:8px;">Add Entry</h4>
+      <div class="form-row">
+        <select id="troopMember" style="flex:1; min-width:140px; padding:8px 12px; background:#2a2623; border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:0.9em;">
+          <option value="">Select member...</option>
+        </select>
+        <input type="number" id="troopPoints" placeholder="Points" style="flex:0.5; min-width:80px; padding:8px 12px; background:#2a2623; border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:0.9em;" onkeypress="if(event.key==='Enter'){var bp=document.getElementById('troopBatchPanel');if(bp&&bp.style.display!=='none'){addToTroopBatch();}else{saveTroopEntry();}}">
+        <button class="btn" onclick="var bp=document.getElementById('troopBatchPanel');if(bp&&bp.style.display!=='none'){addToTroopBatch();}else{saveTroopEntry();}">💾 Save</button>
+        <button class="btn" style="background:#7c3aed;" onclick="toggleTroopBatch()">📋 Batch</button>
+      </div>
+      <div class="form-row" style="margin-top:8px;">
+        <button class="btn" style="background:var(--primary);" onclick="calculateTroopParticipation()">🔄 Calculate Status</button>
+        <button class="btn secondary" onclick="fillTroopNonParticipants()">🙅 Fill Non-Participants</button>
+        <button class="btn secondary" onclick="previewPenalties()">👁️ Preview Penalties</button>
+        <button class="btn secondary" onclick="recalculatePenalties()">⚖️ Recalculate Penalties</button>
+      </div>
+      <div id="troopEntryStatus" style="font-size:0.85em; margin-top:6px;"></div>
+      <!-- Troop Batch Panel -->
+      <div id="troopBatchPanel" style="display:none; margin-top:10px; padding:12px; border:1px solid var(--border); border-radius:8px; background:rgba(124,58,237,0.04);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <strong style="color:#7c3aed;">⚡ Batch Entry — <span id="troopBatchCount" style="color:var(--success);">0</span> queued</strong>
+          <div><button class="btn" style="background:var(--success); padding:4px 12px; font-size:0.85em;" onclick="saveTroopBatch()">💾 Save All</button><button class="btn secondary" style="padding:4px 12px; font-size:0.85em; margin-left:4px;" onclick="toggleTroopBatch()">✖ Close</button></div>
+        </div>
+        <p style="font-size:0.8em; color:var(--text-muted); margin-bottom:8px;">Use the Member dropdown & Points field above, press Enter to queue. Click Save All when done.</p>
+        <div id="troopBatchStatus" style="font-size:0.85em; margin-bottom:6px;"></div>
+        <div style="max-height:40vh; overflow-y:auto;"><table style="width:100%;">
+          <thead><tr><th style="text-align:left; padding:4px 8px;">Member</th><th style="text-align:center; padding:4px 8px; width:90px;">Queued Pts</th><th style="text-align:center; padding:4px 8px; width:40px;"></th></tr></thead>
+          <tbody id="troopBatchBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+    <div id="troopTargetInfo" style="display:none; margin-bottom:12px; padding:10px 14px; background:rgba(142, 184, 229,0.14); border:1px solid var(--border); border-radius:8px;">
+      <strong style="color:var(--primary); font-size:0.85em;">🎯 Category Targets:</strong>
+      <span id="troopTargetSummary" style="font-size:0.85em; color:var(--text-muted);"></span>
+    </div>
+    <div class="participation-section" id="troopParticipationSection" style="display:none">
+      <h3 id="troopParticipationTitle">Participation</h3>
+      <div class="table-container">
+        <table>
+          <thead><tr id="troopParticipationHeaders"></tr></thead>
+          <tbody id="troopParticipationBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HERO EVENTS TAB ===== -->
+  <div class="tab-panel" id="heroEventsTab" style="display:none">
+    <h3 style="color:var(--primary); margin-bottom:12px;">🦸 Hero Level Events</h3>
+    <p style="margin-bottom:12px; color:var(--text-muted); font-size:0.9em;">Did each member's hero level go up enough during the event? The level at the start is the latest hero level entered before the start date; at the end, the latest one entered up to 1 day after the end date. Without those entries a member shows <strong>No data</strong> (no penalty). Calculated automatically once that extra day is over.</p>
+    <div class="form-row" style="margin-bottom:12px;">
+      <select id="heroEventSelect" onchange="onHeroEventSelected()" style="flex:1; min-width:200px; padding:8px 12px; background:#2a2623; border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:0.9em;">
+        <option value="">-- Select Hero Event --</option>
+      </select>
+    </div>
+    <div id="heroEventActions" style="display:none; margin-bottom:12px; padding:12px; background:#2a2623; border:1px solid var(--border); border-radius:8px;">
+      <div id="heroEventInfo" style="font-size:0.85em; color:var(--text-muted); margin-bottom:8px;"></div>
+      <div class="form-row">
+        <button class="btn" style="background:var(--primary);" onclick="calculateHeroLevelEvent()">🔄 Calculate</button>
+        <button class="btn secondary" onclick="previewPenalties()">👁️ Preview Penalties</button>
+        <button class="btn secondary" onclick="recalculatePenalties()">⚖️ Recalculate Penalties</button>
+      </div>
+    </div>
+    <div class="participation-section" id="heroParticipationSection" style="display:none">
+      <h3 id="heroParticipationTitle">Hero Level Results</h3>
+      <div class="table-container">
+        <table>
+          <thead><tr id="heroParticipationHeaders"></tr></thead>
+          <tbody id="heroParticipationBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CREATE EVENT TAB ===== -->
+  <div class="tab-panel" id="createTab" style="display:none">
+    <div class="admin-panel visible" id="adminPanel">
+      <h3 id="eventFormTitle">➕ Create New Event</h3>
+      <div class="form-row">
+        <input type="text" id="eventName" placeholder="Event Name">
+        <select id="eventType" onchange="onEventTypeChanged()"><option value="">Select type...</option></select>
+        <input type="date" id="eventStartDate">
+        <input type="date" id="eventEndDate">
+        <input type="number" id="eventTargetPoints" placeholder="Target Points">
+      </div>
+      <div id="eventTroopTargetSection" style="display:none; margin-bottom:12px; padding:12px; border:1px solid var(--border); border-radius:8px; background:rgba(142, 184, 229,0.10);">
+        <label style="font-weight:600; color:var(--primary); margin-bottom:8px; display:block;">🎯 Troop Category Targets</label>
+        <div class="note" style="margin-bottom:8px;">Set point targets per troop category. Categories match the highest troop level recorded for each member (e.g. G7 = Guard level 7).</div>
+        <div id="troopTargetRows"></div>
+        <button class="btn secondary" onclick="addTroopTargetRow()" style="margin-top:6px; font-size:0.8em;">+ Add Category</button>
+      </div>
+      <div id="eventPenaltySection" style="margin-bottom:12px; padding:12px; border:1px solid var(--border); border-radius:8px; background:rgba(255,210,77,0.14);">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:600;color:var(--primary);margin-bottom:8px;text-transform:none;">
+          <input type="checkbox" id="eventPenaltyEnabled" onchange="onPenaltyEnabledChange()" style="width:auto;"> Enable missed-target penalty
+        </label>
+        <div id="eventPenaltyFields" class="form-row" style="display:none;margin-bottom:0;">
+          <select id="eventPenaltyType" style="flex:0.5;min-width:130px;">
+            <option value="silver">Silver</option>
+            <option value="points">Points</option>
+          </select>
+          <input type="number" id="eventPenaltyAmount" placeholder="Max penalty amount" min="0" step="1">
+        </div>
+        <div class="note" style="margin-top:6px;">Penalties are pro-rated by missed percentage. Silver penalties sync to Bank; point penalties raise that member's period target.</div>
+      </div>
+      <div class="form-row">
+        <button class="btn" onclick="saveEvent()">Save Event</button>
+        <button class="btn secondary" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">Cancel</button>
+      </div>
+
+      <hr style="border:none; border-top:1px solid var(--border); margin:16px 0;">
+      <h3 style="color:var(--primary); margin-bottom:8px;">📅 Generate Upcoming Events from Calendar</h3>
+      <p style="margin-bottom:10px; color:var(--text-muted); font-size:0.85em;">Automatically create events based on the recurring calendar schedule.</p>
+      <div class="form-row" style="align-items:center;">
+        <button class="btn" id="generateEventsBtn" onclick="generateCalendarEvents()" style="background:var(--success); color:#fff;">📅 Generate Events</button>
+        <select id="generateDaysSelect" style="flex:0.5; min-width:140px; padding:8px 12px; background:#2a2623; border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:0.9em;">
+          <option value="7">Next 7 days</option>
+          <option value="14">Next 14 days</option>
+          <option value="30" selected>Next 30 days</option>
+          <option value="60">Next 60 days</option>
+        </select>
+      </div>
+      <div style="margin:8px 0; padding:8px 12px; background:#34302c; border-radius:8px; border:1px solid var(--border);">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+          <span style="font-size:0.85em; color:var(--text-muted); font-weight:600;">Generate for:</span>
+          <label style="font-size:0.8em; color:var(--text-muted); cursor:pointer;"><input type="checkbox" id="genSelectAll" checked onchange="document.querySelectorAll('.gen-type-cb').forEach(cb=>cb.checked=this.checked)"> All</label>
+        </div>
+        <div id="genEventTypes" style="display:flex; flex-wrap:wrap; gap:4px 12px;">
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Active Period" checked> Active Period</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Ancients Tower" checked> Ancients Tower</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Ancients" checked> Ancients</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Ancients Points" checked> Ancients Points</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Doomsday Points" checked> Doomsday Points</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Arachne Points" checked> Arachne Points</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Ragnarok" checked> Ragnarok</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Ragnarok Points" checked> Ragnarok Points</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Shadow City Points" checked> Shadow City Points</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Hellforge Points" checked> Hellforge Points</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Armageddon Points" checked> Armageddon Points</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Dark Omens Event" checked> Dark Omens Event</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Restoration of Balance" checked> Restoration of Balance</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Dark Omens Defense" checked> Dark Omens Defense</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Dark Omens Essence" checked> Dark Omens Essence</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Olympus" checked> Olympus</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Trial of Olympus Points" checked> Trial of Olympus Points</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Hermes' Chests" checked> Hermes' Chests</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Olympus Tartarus" checked> Olympus Tartarus</label>
+          <label style="font-size:0.85em; color:var(--text); cursor:pointer;"><input type="checkbox" class="gen-type-cb" value="Senator Rank" checked> Senator Rank</label>
+        </div>
+      </div>
+      <div id="generateStatus" style="font-size:0.85em; margin-top:6px;"></div>
+    </div>
+  </div>
+
+  <!-- ===== EVENT TYPES TAB ===== -->
+  <div class="tab-panel" id="typesTab" style="display:none">
+    <div class="admin-panel visible" id="typeAdminPanel">
+      <h3 id="typeFormTitle">➕ Add Event Type</h3>
+      <div class="form-row">
+        <input type="text" id="typeName" placeholder="Type Name">
+        <select id="typeMethod" onchange="toggleMethodSections()">
+          <option value="chest-based">Chest-based</option>
+          <option value="troop-based">Troop-Based</option>
+          <option value="manual-entry">Manual Entry</option>
+          <option value="hero-increase">Hero Level Increase</option>
+          <option value="hero-reach">Hero Level Reached</option>
+          <option value="period-marker">Period Marker</option>
+        </select>
+      </div>
+      <div class="chest-types-section" id="chestTypesSection">
+        <label>Chest Types for This Event Type</label>
+        <div id="chestTypesList">
+          <div style="padding:12px; color:var(--text-muted); text-align:center;">Loading chest types...</div>
+        </div>
+        <div class="note">Select which chest types count for this event type.</div>
+      </div>
+      <div id="typeTroopTargetSection" style="display:none; margin-bottom:12px; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--bg-card-soft);">
+        <label style="font-weight:600; color:var(--primary); margin-bottom:8px; display:block;">🎯 Default Troop Category Targets</label>
+        <div class="note" style="margin-bottom:8px;">Filled in for every new event of this type (also the generated ones). An event's own targets can still be changed.</div>
+        <div id="typeTroopTargetRows"></div>
+        <button class="btn secondary" onclick="addTroopTargetRow('', '', 'typeTroopTargetRows')" style="margin-top:6px; font-size:0.8em;">+ Add Category</button>
+      </div>
+      <div class="form-row">
+        <input type="text" id="typeDescription" placeholder="Description">
+        <input type="number" id="typeThreshold" placeholder="Threshold">
+        <button class="btn" onclick="saveEventType()">Save Type</button>
+        <button class="btn secondary" id="cancelTypeEditBtn" style="display:none" onclick="cancelTypeEdit()">Cancel</button>
+      </div>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortTypes('name')">Type Name</th>
+            <th onclick="sortTypes('trackingMethod')">Method</th>
+            <th onclick="sortTypes('chestTypes')">Chest Types / Targets</th>
+            <th onclick="sortTypes('threshold')">Threshold</th>
+            <th id="typeActionsHeader" style="display:none">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="typesTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="penaltyPreviewPanel" style="display:none; position:fixed; right:16px; bottom:16px; width:min(420px, calc(100vw - 32px)); max-height:60vh; overflow:auto; background:#2a2623; border:1px solid var(--border); border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,0.18); padding:14px; z-index:900;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+    <strong style="color:var(--primary);">👁️ Penalty Preview</strong>
+    <button class="btn secondary" style="padding:3px 9px; font-size:0.8em;" onclick="closePenaltyPreview()">✖ Close</button>
+  </div>
+  <p id="penaltyPreviewSummary" style="font-size:0.82em; color:var(--text-muted); margin:0 0 8px;"></p>
+  <table style="width:100%; font-size:0.85em;">
+    <thead><tr><th style="text-align:left; padding:4px 6px;">Member</th><th style="text-align:right; padding:4px 6px;">Penalty</th><th style="text-align:left; padding:4px 6px;">Status</th></tr></thead>
+    <tbody id="penaltyPreviewBody"></tbody>
+  </table>
+  <button class="btn" style="margin-top:10px;" onclick="recalculatePenalties()">⚖️ Apply These Penalties</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let eventsData = [];
+  let eventTypesData = [];
+  let availableChestTypes = [];
+  let isLoggedIn = false;
+
+  // Category badge colors (shared across troop UI)
+  const CAT_COLORS = {
+    G4: { bg: '#c0c0c0', fg: '#333' }, G5: { bg: '#c0c0c0', fg: '#333' },
+    G6: { bg: '#fdd835', fg: '#333' }, G7: { bg: '#ff9800', fg: '#fff' },
+    T7: { bg: '#e53935', fg: '#fff' }, G8: { bg: '#00bcd4', fg: '#fff' },
+    T8: { bg: '#1565c0', fg: '#fff' }, G9: { bg: '#ba68c8', fg: '#fff' },
+    T9: { bg: '#7b1fa2', fg: '#fff' }
+  };
+  function catBadgeHtml(cat) {
+    const c = CAT_COLORS[cat] || { bg: '#9e9e9e', fg: '#fff' };
+    return `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.8em;font-weight:700;background:${c.bg};color:${c.fg}">${escapeHtml(cat)}</span>`;
+  }
+
+  // Sort state (null = default two-level: eventType asc, startDate desc)
+  let eventsSortField = null;
+  let eventsSortAsc = true;
+  let eventsFilter = 'active';
+  let eventsTypeFilter = '';
+
+  function setEventTypeFilter(type) {
+    eventsTypeFilter = type;
+    renderEvents();
+  }
+
+  function setEventFilter(filter, btn) {
+    eventsFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderEvents();
+  }
+
+  // Find current & previous period-marker ranges (cached per render cycle)
+  let _periodRanges = null;
+  function getPeriodRanges_() {
+    if (_periodRanges) return _periodRanges;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const periods = (eventsData || [])
+      .filter(e => e.participationMethod === 'period-marker')
+      .sort((a, b) => (a.startDate || '').localeCompare(b.startDate || ''));
+    let current = null, previous = null;
+    for (let i = 0; i < periods.length; i++) {
+      const s = periods[i].startDate ? new Date(periods[i].startDate + 'T00:00:00') : null;
+      const e = periods[i].endDate   ? new Date(periods[i].endDate   + 'T23:59:59') : null;
+      if (s && e && s <= today && e >= today) {
+        current = { start: s, end: e };
+        // Previous = the period-marker just before this one
+        for (let j = i - 1; j >= 0; j--) {
+          const ps = periods[j].startDate ? new Date(periods[j].startDate + 'T00:00:00') : null;
+          const pe = periods[j].endDate   ? new Date(periods[j].endDate   + 'T23:59:59') : null;
+          if (ps && pe) { previous = { start: ps, end: pe }; break; }
+        }
+        break;
+      }
+    }
+    if (!current) {
+      // Fallback: 14-day window
+      const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() - 14);
+      current = { start: cutoff, end: today };
+    }
+    _periodRanges = { current, previous };
+    return _periodRanges;
+  }
+
+  // Classify an event relative to the current & previous periods
+  function classifyEvent(ev) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const { current, previous } = getPeriodRanges_();
+    const start = ev.startDate ? new Date(ev.startDate + 'T00:00:00') : null;
+    const end = ev.endDate ? new Date(ev.endDate + 'T23:59:59') : null;
+    if (!start || !end) return 'other';
+    // Period-marker events define the periods themselves — classify directly vs today
+    if (ev.participationMethod === 'period-marker') {
+      if (start > today) return 'future';
+      if (end < today) {
+        if (previous && end >= previous.start && start <= previous.end) return 'recent';
+        return 'ended';
+      }
+      return 'active';
+    }
+    if (start > current.end) return 'future';
+    // Active = overlaps with the current period
+    if (end >= current.start && start <= current.end) return 'active';
+    // Recent = overlaps with the previous period
+    if (previous && end >= previous.start && start <= previous.end) return 'recent';
+    return 'ended';
+  }
+  let typesSortField = 'name';
+  let typesSortAsc = true;
+  let partSortField = null;
+  let partSortAsc = true;
+  let lastPartData = [];
+  let lastPartHeaders = [];
+  function sortParticipation(field) {
+    if (partSortField === field) partSortAsc = !partSortAsc;
+    else { partSortField = field; partSortAsc = true; }
+    if (currentPartBodyId === 'troopParticipationBody') {
+      renderTroopParticipation(lastPartData, lastPartHeaders);
+    } else {
+      renderParticipation(lastPartData, lastPartHeaders);
+    }
+  }
+  function renderParticipation(data, headers) {
+    // The penalty exemption badge goes in the status column (chest events: Participated, manual: Notes)
+    const statusCol = ['Status', 'Participated', 'Notes'].find(h => headers.includes(h));
+    let sorted = [...data];
+    if (partSortField && headers.includes(partSortField)) {
+      sorted.sort((a, b) => {
+        let va = a[partSortField], vb = b[partSortField];
+        const na = Number(va), nb = Number(vb);
+        if (!isNaN(na) && !isNaN(nb)) return partSortAsc ? na - nb : nb - na;
+        return partSortAsc ? String(va || '').localeCompare(String(vb || '')) : String(vb || '').localeCompare(String(va || ''));
+      });
+    }
+    document.getElementById(currentPartBodyId).innerHTML = sorted.map(row =>
+      '<tr>' + headers.map(h => {
+        if (h === 'Penalty') return penaltyCellHtml(row);
+        if (h === 'Penalty Status') return penaltyStatusCellHtml(row);
+        const badge = h === statusCol ? penaltyExemptBadge(row['Member Name']) : '';
+        if (badge) return `<td>${badge}${h === 'Notes' && row[h] ? ' ' + escapeHtml(String(row[h])) : ''}</td>`;
+        return `<td>${escapeHtml(String(row[h] || ''))}</td>`;
+      }).join('') + '</tr>'
+    ).join('');
+    renderOutcomeSummary(currentPartBodyId, sorted);
+  }
+  let currentUser = null;
+  let editingEvent = null;
+  let editingType = null;
+  let selectedEvent = null;
+  let membersData = [];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    checkLoginState();
+    toggleChestTypesSection();
+    if (isLoggedIn) {
+      document.getElementById('loginGate').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+      loadEvents();
+      loadEventTypes();
+      loadMembers();
+    }
+  });
+
+  // AUTH
+  function checkLoginState() {
+    const stored = localStorage.getItem('asc_auth');
+    if (stored) {
+      try {
+        const auth = JSON.parse(stored);
+        if (auth.email && auth.allowed) { isLoggedIn = true; currentUser = auth; updateLoginUI(); }
+      } catch (e) {}
+    }
+  }
+  function handleLogin() {
+    if (!document.getElementById('gsi-script')) {
+      const s = document.createElement('script'); s.id = 'gsi-script';
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.onload = () => { google.accounts.id.initialize({ client_id: SITE_CONFIG.googleClientId, callback: handleGoogleCallback }); google.accounts.id.prompt(); };
+      document.head.appendChild(s);
+    } else { google.accounts.id.prompt(); }
+  }
+  async function handleGoogleCallback(response) {
+    try {
+      const res = await fetch(window.GAS_WEB_APP_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken: response.credential }) });
+      const data = await res.json();
+      if (data.success && data.email) {
+        const vRes = await fetch(window.GAS_WEB_APP_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'api', fn: 'verifyGoogleLogin', args: [{ email: data.email }] }) });
+        const vData = await vRes.json();
+        const auth = vData.data || vData;
+        if (auth.success && auth.allowed) {
+          isLoggedIn = true; currentUser = { email: data.email, allowed: true };
+          localStorage.setItem('asc_auth', JSON.stringify(currentUser));
+          updateLoginUI(); showToast('Logged in', 'success');
+        } else { showToast('Access denied', 'error'); }
+      }
+    } catch (err) { showToast('Login error', 'error'); }
+  }
+  function handleLogout() { isLoggedIn = false; currentUser = null; localStorage.removeItem('asc_auth'); window.location.href = 'dashboard.html'; }
+  function updateLoginUI() {
+    document.getElementById('userEmail').textContent = isLoggedIn ? currentUser.email : '';
+    document.getElementById('userEmail').style.display = isLoggedIn ? 'inline' : 'none';
+    document.getElementById('loginBtn').style.display = isLoggedIn ? 'none' : 'inline';
+    document.getElementById('logoutBtn').style.display = isLoggedIn ? 'inline' : 'none';
+    // Show/hide main content based on login
+    document.getElementById('loginGate').style.display = isLoggedIn ? 'none' : 'block';
+    document.getElementById('mainContent').style.display = isLoggedIn ? 'block' : 'none';
+    if (isLoggedIn) {
+      document.getElementById('typeActionsHeader').style.display = '';
+      if (eventsData.length === 0) loadEvents();
+      if (eventTypesData.length === 0) loadEventTypes();
+      if (membersData.length === 0) loadMembers();
+      if (eventsData.length > 0) renderEvents();
+      if (eventTypesData.length > 0) renderEventTypes();
+    }
+  }
+
+  // TABS
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.sub-tabs button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+    document.getElementById(tabId).style.display = 'block';
+  }
+
+  // LOAD DATA
+  async function loadEvents() {
+    try {
+      const result = await callFunction('getAllEvents');
+      if (result && result.success) {
+        eventsData = result.events || [];
+        renderEvents();
+      }
+      document.getElementById('eventsLoading').style.display = 'none';
+      document.getElementById('eventsTableContainer').style.display = 'block';
+    } catch (err) {
+      document.getElementById('eventsLoading').innerHTML = '<span style="color:var(--danger)">Failed to load events</span>';
+    }
+  }
+
+  async function loadEventTypes() {
+    try {
+      const result = await callFunction('getAllEventTypes');
+      if (result && result.success) {
+        eventTypesData = result.eventTypes || [];
+        renderEventTypes();
+        populateEventTypeDropdown();
+      }
+      loadChestTypes();
+    } catch (err) { console.error(err); }
+  }
+
+  async function loadChestTypes() {
+    try {
+      const result = await callFunction('getAvailableChestTypes');
+      if (result && result.success) {
+        availableChestTypes = result.chestTypes || [];
+        renderChestTypesList();
+      }
+    } catch (err) { console.error('Failed to load chest types:', err); }
+  }
+
+  function renderChestTypesList() {
+    const container = document.getElementById('chestTypesList');
+    if (!availableChestTypes || availableChestTypes.length === 0) {
+      container.innerHTML = '<div style="padding:12px; color:var(--text-muted);">No chest types found</div>';
+      return;
+    }
+    container.innerHTML = availableChestTypes.map((type, index) =>
+      `<div class="checkbox-item">
+        <input type="checkbox" id="chest_${index}" value="${escapeHtml(type)}">
+        <label for="chest_${index}">${escapeHtml(type)}</label>
+      </div>`
+    ).join('');
+  }
+
+  function getSelectedChestTypes() {
+    const checkboxes = document.querySelectorAll('#chestTypesList input[type="checkbox"]:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+  }
+
+  function setSelectedChestTypes(typesStr) {
+    const types = (typesStr || '').split(',').map(t => t.trim()).filter(t => t);
+    document.querySelectorAll('#chestTypesList input[type="checkbox"]').forEach(cb => {
+      cb.checked = types.includes(cb.value);
+    });
+  }
+
+  function toggleChestTypesSection() { toggleMethodSections(); }
+  function toggleMethodSections() {
+    const method = document.getElementById('typeMethod').value;
+    document.getElementById('chestTypesSection').style.display = method === 'chest-based' ? 'block' : 'none';
+    document.getElementById('typeTroopTargetSection').style.display = (method === 'troop-based' || isHeroMethod(method)) ? 'block' : 'none';
+  }
+
+  // Hero level events (hero-increase / hero-reach): the target is a number of hero levels — the
+  // event's Target Points is the default, the troop category targets (optional) override it.
+  function isHeroMethod(method) { return method === 'hero-increase' || method === 'hero-reach'; }
+
+  // Show/hide troop targets on event form based on selected event type
+  function onEventTypeChanged() {
+    const selectedType = document.getElementById('eventType').value;
+    const et = eventTypesData.find(t => t.name === selectedType);
+    const isTroop = et && (et.trackingMethod === 'troop-based' || isHeroMethod(et.trackingMethod));
+    document.getElementById('eventTroopTargetSection').style.display = isTroop ? 'block' : 'none';
+    setHeroTargetLabels(et && et.trackingMethod);
+    // A new event (or one without targets yet) starts with the event type's default targets
+    if (isTroop && et.troopTargets && !getTroopTargetsJson()) setTroopTargetsFromJson(et.troopTargets);
+    // A new Active Period event starts with the event type's points as its target
+    const targetInput = document.getElementById('eventTargetPoints');
+    if (et && et.trackingMethod === 'period-marker' && !editingEvent && !targetInput.value && Number(et.threshold) > 0) targetInput.value = Number(et.threshold);
+  }
+
+  /** The event form's target field: hero levels for hero level events, points otherwise. */
+  function setHeroTargetLabels(method) {
+    const input = document.getElementById('eventTargetPoints');
+    if (input) input.placeholder = method === 'hero-reach' ? 'Default target: hero level (e.g. 45)'
+      : method === 'hero-increase' ? 'Default target: hero levels gained (e.g. 2)' : 'Target Points';
+  }
+
+  /** "🎯 G8 1,000 · T9 2,000" for the event types table; '-' without targets. */
+  function troopTargetsText(json) {
+    let targets = null;
+    try { targets = json ? JSON.parse(json) : null; } catch (e) {}
+    if (!targets || !Object.keys(targets).length) return '-';
+    return '🎯 ' + Object.entries(targets).map(([cat, pts]) => `${escapeHtml(cat)} ${Number(pts).toLocaleString()}`).join(' · ');
+  }
+
+  // Troop target row management
+  const TROOP_CATEGORIES = ['G4','G5','G6','G7','T7','G8','T8','G9','T9'];
+  // A clan with Voltron access (site-config.js voltronAccess) can make a tournament title the
+  // target of a troop category (Winner, Podium, Top 10 or Badge, from the Voltron import).
+  const TITLE_TARGETS = !!(typeof SITE_CONFIG !== 'undefined' && SITE_CONFIG.voltronAccess);
+  const isTitleTarget = (v) => String(v ?? '').trim().toLowerCase() === 'title';
+
+  function addTroopTargetRow(category, points, containerId) {
+    const container = document.getElementById(containerId || 'troopTargetRows');
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; gap:8px; align-items:center; margin-bottom:4px;';
+    const sel = document.createElement('select');
+    sel.className = 'troop-cat-select';
+    sel.style.cssText = 'padding:4px 6px; border:1px solid var(--border); border-radius:4px; font-size:0.85em;';
+    TROOP_CATEGORIES.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c; o.textContent = c;
+      if (c === category) o.selected = true;
+      sel.appendChild(o);
+    });
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.placeholder = 'Points target';
+    inp.className = 'troop-pts-input';
+    inp.style.cssText = 'padding:4px 6px; border:1px solid var(--border); border-radius:4px; font-size:0.85em; width:120px;';
+    if (points && !isTitleTarget(points)) inp.value = points;
+    let kind = null;
+    if (TITLE_TARGETS) {
+      kind = document.createElement('select');
+      kind.className = 'troop-kind-select';
+      kind.style.cssText = sel.style.cssText;
+      kind.innerHTML = '<option value="points">Points</option><option value="title">Title</option>';
+      kind.value = isTitleTarget(points) ? 'title' : 'points';
+      inp.disabled = kind.value === 'title';
+      kind.onchange = () => { inp.disabled = kind.value === 'title'; if (inp.disabled) inp.value = ''; };
+    }
+    const btn = document.createElement('button');
+    btn.textContent = '✕'; btn.className = 'btn secondary';
+    btn.style.cssText = 'padding:2px 8px; font-size:0.8em;';
+    btn.onclick = () => row.remove();
+    row.appendChild(sel); if (kind) row.appendChild(kind); row.appendChild(inp); row.appendChild(btn);
+    container.appendChild(row);
+  }
+
+  function getTroopTargetsJson(containerId) {
+    const rows = document.querySelectorAll('#' + (containerId || 'troopTargetRows') + ' > div');
+    const targets = {};
+    rows.forEach(row => {
+      const cat = row.querySelector('.troop-cat-select')?.value;
+      const pts = Number(row.querySelector('.troop-pts-input')?.value) || 0;
+      if (cat && row.querySelector('.troop-kind-select')?.value === 'title') targets[cat] = 'title';
+      else if (cat && pts > 0) targets[cat] = pts;
+    });
+    return Object.keys(targets).length > 0 ? JSON.stringify(targets) : '';
+  }
+
+  function setTroopTargetsFromJson(jsonStr, containerId) {
+    document.getElementById(containerId || 'troopTargetRows').innerHTML = '';
+    if (!jsonStr) return;
+    try {
+      const targets = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
+      Object.entries(targets).forEach(([cat, pts]) => addTroopTargetRow(cat, pts, containerId));
+    } catch (e) { /* ignore invalid JSON */ }
+  }
+
+  function populateEventTypeDropdown() {
+    const select = document.getElementById('eventType');
+    select.innerHTML = '<option value="">Select type...</option>';
+    eventTypesData.forEach(et => {
+      const opt = document.createElement('option');
+      opt.value = et.name; opt.textContent = et.name;
+      select.appendChild(opt);
+    });
+  }
+
+  // RENDER
+  function sortEvents(field) {
+    if (eventsSortField === field) eventsSortAsc = !eventsSortAsc;
+    else { eventsSortField = field; eventsSortAsc = true; }
+    renderEvents();
+  }
+  function sortTypes(field) {
+    if (typesSortField === field) typesSortAsc = !typesSortAsc;
+    else { typesSortField = field; typesSortAsc = true; }
+    renderEventTypes();
+  }
+
+  function renderEvents() {
+    _periodRanges = null;         // bust period cache on each render
+    const tbody = document.getElementById('eventsTableBody');
+    tbody.innerHTML = '';
+
+    // Populate event type dropdown from all events
+    var typeSelect = document.getElementById('eventTypeFilter');
+    if (typeSelect) {
+      var types = []; var seen = {};
+      eventsData.forEach(function(e) { if (e.eventType && !seen[e.eventType]) { seen[e.eventType] = 1; types.push(e.eventType); } });
+      types.sort();
+      var prev = eventsTypeFilter;
+      typeSelect.innerHTML = '<option value="">All Types</option>' + types.map(function(t) { return '<option value="' + t + '"' + (t === prev ? ' selected' : '') + '>' + t + '</option>'; }).join('');
+    }
+
+    let filtered = [...eventsData];
+    if (eventsFilter !== 'all') {
+      filtered = filtered.filter(ev => {
+        const cls = classifyEvent(ev);
+        if (eventsFilter === 'active') return cls === 'active';
+        if (eventsFilter === 'recent') return cls === 'active' || cls === 'recent';
+        if (eventsFilter === 'ended') return cls === 'ended';
+        return true;
+      });
+    }
+    if (eventsTypeFilter) {
+      filtered = filtered.filter(ev => ev.eventType === eventsTypeFilter);
+    }
+    const sorted = filtered.sort((a, b) => {
+      // Default two-level sort: eventType asc, then startDate desc
+      if (!eventsSortField) {
+        const typeA = (a.eventType || '').toLowerCase(), typeB = (b.eventType || '').toLowerCase();
+        if (typeA !== typeB) return typeA.localeCompare(typeB);
+        return (b.startDate || '').localeCompare(a.startDate || '');
+      }
+      let va = a[eventsSortField] || '', vb = b[eventsSortField] || '';
+      if (eventsSortField === 'targetPoints') { va = Number(va) || 0; vb = Number(vb) || 0; }
+      if (typeof va === 'number') return eventsSortAsc ? va - vb : vb - va;
+      return eventsSortAsc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+    });
+    if (sorted.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No events match this filter.</td></tr>';
+    }
+    sorted.forEach(ev => {
+      const methodClass = ev.participationMethod === 'chest-based' ? 'method-chest' :
+        ev.participationMethod === 'period-marker' ? 'method-period' : 'method-manual';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${escapeHtml(ev.eventName)}</strong></td>
+        <td>${escapeHtml(ev.eventType)}</td>
+        <td>${ev.startDate || '-'}</td>
+        <td>${ev.endDate || '-'}</td>
+        <td><span class="method-badge ${methodClass}">${ev.participationMethod}</span></td>
+        <td>${ev.targetPoints || '-'}</td>
+        <td class="event-actions">
+          ${ev.participationMethod !== 'period-marker' ? `<button onclick="viewEvent('${escapeAttr(ev.eventName)}')" title="View participation">👁️</button>` : ''}
+          ${isLoggedIn ? `<button onclick="editEvent('${escapeAttr(ev.eventName)}')" title="Edit">✏️</button>
+          <button onclick="deleteEvent('${escapeAttr(ev.eventName)}')" title="Delete">🗑️</button>` : ''}
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Populate chest/manual event dropdowns
+    populateEventDropdowns();
+  }
+
+  function renderEventTypes() {
+    const tbody = document.getElementById('typesTableBody');
+    tbody.innerHTML = '';
+    const sorted = [...eventTypesData].sort((a, b) => {
+      let va = a[typesSortField] || '', vb = b[typesSortField] || '';
+      if (typesSortField === 'threshold') { va = Number(va) || 0; vb = Number(vb) || 0; }
+      if (typeof va === 'number') return typesSortAsc ? va - vb : vb - va;
+      return typesSortAsc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+    });
+    sorted.forEach(et => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${escapeHtml(et.name)}</strong></td>
+        <td>${et.trackingMethod}</td>
+        <td>${(et.trackingMethod === 'troop-based' || isHeroMethod(et.trackingMethod)) ? troopTargetsText(et.troopTargets) : escapeHtml(et.chestTypes)}</td>
+        <td>${et.threshold || '-'}</td>
+        ${isLoggedIn ? `<td class="event-actions">
+          <button onclick="editEventType('${escapeAttr(et.name)}')">✏️</button>
+          <button onclick="deleteEventType('${escapeAttr(et.name)}')">🗑️</button>
+        </td>` : ''}
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // EVENT CRUD
+  async function saveEvent() {
+    const name = document.getElementById('eventName').value.trim();
+    const type = document.getElementById('eventType').value;
+    const start = document.getElementById('eventStartDate').value;
+    const end = document.getElementById('eventEndDate').value;
+    const target = document.getElementById('eventTargetPoints').value;
+    const penaltyEnabled = document.getElementById('eventPenaltyEnabled').checked;
+    const penaltyType = document.getElementById('eventPenaltyType').value;
+    const penaltyAmount = document.getElementById('eventPenaltyAmount').value;
+    if (!name || !type || !start || !end) { showToast('All fields required', 'error'); return; }
+
+    // Get troop targets if this is a troop-based event type
+    const et = eventTypesData.find(t => t.name === type);
+    const troopTargets = (et && (et.trackingMethod === 'troop-based' || isHeroMethod(et.trackingMethod))) ? getTroopTargetsJson() : '';
+
+    try {
+      let result;
+      if (editingEvent) {
+        result = await callFunction('updateEvent', [editingEvent, name, type, start, end, target ? Number(target) : null, troopTargets, penaltyEnabled, penaltyType, penaltyAmount ? Number(penaltyAmount) : null]);
+      } else {
+        result = await callFunction('addEvent', [name, type, start, end, target ? Number(target) : null, troopTargets, penaltyEnabled, penaltyType, penaltyAmount ? Number(penaltyAmount) : null]);
+      }
+      showToast(result?.message || 'Done', result?.success ? 'success' : 'error');
+      if (result?.success) { cancelEdit(); loadEvents(); }
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+  }
+
+  function editEvent(name) {
+    const ev = eventsData.find(e => e.eventName === name);
+    if (!ev) return;
+    editingEvent = name;
+    document.getElementById('eventName').value = ev.eventName;
+    document.getElementById('eventType').value = ev.eventType;
+    document.getElementById('eventStartDate').value = ev.startDate;
+    document.getElementById('eventEndDate').value = ev.endDate;
+    document.getElementById('eventTargetPoints').value = ev.targetPoints || '';
+    document.getElementById('eventPenaltyEnabled').checked = !!ev.penaltyEnabled;
+    document.getElementById('eventPenaltyType').value = ev.penaltyType || 'silver';
+    document.getElementById('eventPenaltyAmount').value = ev.penaltyAmount || '';
+    onPenaltyEnabledChange();
+    // Show troop targets if troop-based (or a hero level event)
+    const et = eventTypesData.find(t => t.name === ev.eventType);
+    const isTroop = et && (et.trackingMethod === 'troop-based' || isHeroMethod(et.trackingMethod));
+    setHeroTargetLabels(et && et.trackingMethod);
+    document.getElementById('eventTroopTargetSection').style.display = isTroop ? 'block' : 'none';
+    setTroopTargetsFromJson(ev.troopTargets || '');
+    document.getElementById('eventFormTitle').textContent = '✏️ Edit Event';
+    document.getElementById('cancelEditBtn').style.display = 'inline';
+    // Switch to Create tab to show the form
+    const createBtn = document.querySelector(`.sub-tabs button[onclick*="'createTab'"]`);
+    switchTab('createTab', createBtn);
+  }
+
+  function cancelEdit() {
+    editingEvent = null;
+    document.getElementById('eventName').value = '';
+    document.getElementById('eventType').value = '';
+    document.getElementById('eventStartDate').value = '';
+    document.getElementById('eventEndDate').value = '';
+    document.getElementById('eventTargetPoints').value = '';
+    document.getElementById('eventPenaltyEnabled').checked = false;
+    document.getElementById('eventPenaltyType').value = 'silver';
+    document.getElementById('eventPenaltyAmount').value = '';
+    onPenaltyEnabledChange();
+    document.getElementById('eventTroopTargetSection').style.display = 'none';
+    document.getElementById('troopTargetRows').innerHTML = '';
+    document.getElementById('eventFormTitle').textContent = '➕ Create New Event';
+    document.getElementById('cancelEditBtn').style.display = 'none';
+  }
+
+  function onPenaltyEnabledChange() {
+    const enabled = document.getElementById('eventPenaltyEnabled').checked;
+    document.getElementById('eventPenaltyFields').style.display = enabled ? 'flex' : 'none';
+  }
+
+  async function deleteEvent(name) {
+    if (!confirm(`Delete event "${name}"?`)) return;
+    try {
+      const result = await callFunction('deleteEvent', [name]);
+      showToast(result?.message || 'Done', result?.success ? 'success' : 'error');
+      if (result?.success) loadEvents();
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+  }
+
+  // EVENT TYPE CRUD
+  async function saveEventType() {
+    const name = document.getElementById('typeName').value.trim();
+    const method = document.getElementById('typeMethod').value;
+    const chestTypes = method === 'chest-based' ? getSelectedChestTypes().join(',') : '';
+    const description = document.getElementById('typeDescription').value;
+    const threshold = document.getElementById('typeThreshold').value;
+    const troopTargets = (method === 'troop-based' || isHeroMethod(method)) ? getTroopTargetsJson('typeTroopTargetRows') : '';
+    if (!name || !method) { showToast('Name and method required', 'error'); return; }
+
+    try {
+      let result;
+      if (editingType) {
+        result = await callFunction('updateEventType', [editingType, name, method, chestTypes, description, threshold ? Number(threshold) : 0, troopTargets]);
+      } else {
+        result = await callFunction('addEventType', [name, method, chestTypes, description, threshold ? Number(threshold) : 0, troopTargets]);
+      }
+      showToast(result?.message || 'Done', result?.success ? 'success' : 'error');
+      if (result?.success) { cancelTypeEdit(); loadEventTypes(); }
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+  }
+
+  function editEventType(name) {
+    const et = eventTypesData.find(t => t.name === name);
+    if (!et) return;
+    editingType = name;
+    document.getElementById('typeName').value = et.name;
+    document.getElementById('typeMethod').value = et.trackingMethod;
+    toggleMethodSections();
+    setSelectedChestTypes(et.chestTypes);
+    setTroopTargetsFromJson(et.troopTargets || '', 'typeTroopTargetRows');
+    document.getElementById('typeDescription').value = et.description || '';
+    document.getElementById('typeThreshold').value = et.threshold || '';
+    document.getElementById('typeFormTitle').textContent = '✏️ Edit Event Type';
+    document.getElementById('cancelTypeEditBtn').style.display = 'inline';
+  }
+
+  function cancelTypeEdit() {
+    editingType = null;
+    document.getElementById('typeName').value = '';
+    document.getElementById('typeMethod').value = 'chest-based';
+    toggleMethodSections();
+    document.querySelectorAll('#chestTypesList input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+    document.getElementById('typeTroopTargetRows').innerHTML = '';
+    document.getElementById('typeDescription').value = '';
+    document.getElementById('typeThreshold').value = '';
+    document.getElementById('typeFormTitle').textContent = '➕ Add Event Type';
+    document.getElementById('cancelTypeEditBtn').style.display = 'none';
+  }
+
+  async function deleteEventType(name) {
+    if (!confirm(`Delete event type "${name}"?`)) return;
+    try {
+      const result = await callFunction('deleteEventType', [name]);
+      showToast(result?.message || 'Done', result?.success ? 'success' : 'error');
+      if (result?.success) loadEventTypes();
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+  }
+
+  // VIEW EVENT — jump to the right tab
+  function viewEvent(name) {
+    const ev = eventsData.find(e => e.eventName === name);
+    if (!ev) return;
+    if (ev.participationMethod === 'chest-based') {
+      const btn = document.querySelector(`.sub-tabs button[onclick*="'chestEventsTab'"]`);
+      switchTab('chestEventsTab', btn);
+      document.getElementById('chestEventSelect').value = name;
+      onChestEventSelected();
+    } else if (ev.participationMethod === 'troop-based') {
+      const btn = document.querySelector(`.sub-tabs button[onclick*="'troopEventsTab'"]`);
+      switchTab('troopEventsTab', btn);
+      document.getElementById('troopEventSelect').value = name;
+      onTroopEventSelected();
+    } else if (isHeroMethod(ev.participationMethod)) {
+      const btn = document.querySelector(`.sub-tabs button[onclick*="'heroEventsTab'"]`);
+      switchTab('heroEventsTab', btn);
+      document.getElementById('heroEventSelect').value = name;
+      onHeroEventSelected();
+    } else if (ev.participationMethod === 'manual-entry') {
+      const btn = document.querySelector(`.sub-tabs button[onclick*="'manualEventsTab'"]`);
+      switchTab('manualEventsTab', btn);
+      document.getElementById('manualEventSelect').value = name;
+      onManualEventSelected();
+    }
+  }
+
+  // POPULATE EVENT DROPDOWNS
+  function buildGroupedOptions(events, placeholder) {
+    const active = [], recent = [], older = [], future = [];
+    events.forEach(e => {
+      const cls = classifyEvent(e);
+      if (cls === 'active') active.push(e);
+      else if (cls === 'recent') recent.push(e);
+      else if (cls === 'future') future.push(e);
+      else older.push(e);
+    });
+    // Sort each group by start date descending
+    const byDateDesc = (a, b) => (b.startDate || '').localeCompare(a.startDate || '');
+    [active, recent, older, future].forEach(g => g.sort(byDateDesc));
+    const optionHtml = (e) => `<option value="${escapeAttr(e.eventName)}">${escapeHtml(e.eventName)} (${e.startDate} \u2192 ${e.endDate})</option>`;
+    let html = `<option value="">${placeholder}</option>`;
+    if (active.length) html += `<optgroup label="\ud83d\udfe2 Active">${active.map(optionHtml).join('')}</optgroup>`;
+    if (recent.length) html += `<optgroup label="\ud83d\udd50 Recent (prev. period)">${recent.map(optionHtml).join('')}</optgroup>`;
+    if (future.length) html += `<optgroup label="\ud83d\udcc5 Upcoming">${future.map(optionHtml).join('')}</optgroup>`;
+    if (older.length) html += `<optgroup label="\ud83d\udcc1 Older">${older.map(optionHtml).join('')}</optgroup>`;
+    return html;
+  }
+
+  function populateEventDropdowns() {
+    const chestEvents = eventsData.filter(e => e.participationMethod === 'chest-based');
+    const manualEvents = eventsData.filter(e => e.participationMethod === 'manual-entry');
+    const troopEvents = eventsData.filter(e => e.participationMethod === 'troop-based');
+    document.getElementById('chestEventSelect').innerHTML = buildGroupedOptions(chestEvents, '-- Select Chest Event --');
+    document.getElementById('manualEventSelect').innerHTML = buildGroupedOptions(manualEvents, '-- Select Manual Event --');
+    document.getElementById('troopEventSelect').innerHTML = buildGroupedOptions(troopEvents, '-- Select Troop Event --');
+    const heroEvents = eventsData.filter(e => isHeroMethod(e.participationMethod));
+    document.getElementById('heroEventSelect').innerHTML = buildGroupedOptions(heroEvents, '-- Select Hero Event --');
+  }
+
+  // CHEST EVENT TAB
+  function onChestEventSelected() {
+    const name = document.getElementById('chestEventSelect').value;
+    const ev = eventsData.find(e => e.eventName === name);
+    selectedEvent = ev || null;
+    document.getElementById('chestRecalcBtn').style.display = ev ? 'inline' : 'none';
+    document.getElementById('chestFillBtn').style.display = ev ? 'inline' : 'none';
+    document.getElementById('chestPenaltyBtn').style.display = ev ? 'inline' : 'none';
+    document.getElementById('chestPenaltyPreviewBtn').style.display = ev ? 'inline' : 'none';
+    if (ev) loadParticipationInto(ev, 'chestParticipationSection', 'chestParticipationTitle', 'chestParticipationHeaders', 'chestParticipationBody');
+    else document.getElementById('chestParticipationSection').style.display = 'none';
+  }
+
+  // MANUAL EVENT TAB
+  function onManualEventSelected() {
+    const name = document.getElementById('manualEventSelect').value;
+    const ev = eventsData.find(e => e.eventName === name);
+    selectedEvent = ev || null;
+    document.getElementById('manualEntryForm').style.display = ev ? 'block' : 'none';
+    document.getElementById('manualEntryStatus').textContent = '';
+    if (ev) loadParticipationInto(ev, 'manualParticipationSection', 'manualParticipationTitle', 'manualParticipationHeaders', 'manualParticipationBody');
+    else document.getElementById('manualParticipationSection').style.display = 'none';
+  }
+
+  // TROOP EVENT TAB
+  function onTroopEventSelected() {
+    const name = document.getElementById('troopEventSelect').value;
+    const ev = eventsData.find(e => e.eventName === name);
+    selectedEvent = ev || null;
+    document.getElementById('troopEntryForm').style.display = ev ? 'block' : 'none';
+    document.getElementById('troopEntryStatus').textContent = '';
+    populateTroopMemberSelect();
+    if (ev) {
+      // Show troop target summary
+      showTroopTargetInfo(ev);
+      loadTroopParticipation(ev);
+    } else {
+      document.getElementById('troopParticipationSection').style.display = 'none';
+      document.getElementById('troopTargetInfo').style.display = 'none';
+    }
+  }
+
+  function showTroopTargetInfo(ev) {
+    const info = document.getElementById('troopTargetInfo');
+    const summary = document.getElementById('troopTargetSummary');
+    let targets = {};
+    try { if (ev.troopTargets) targets = JSON.parse(ev.troopTargets); } catch (e) {}
+    const entries = Object.entries(targets);
+    if (entries.length > 0) {
+      summary.innerHTML = entries.map(([cat, pts]) =>
+        `${catBadgeHtml(cat)} ${Number(pts).toLocaleString()}`
+      ).join(' &nbsp;│&nbsp; ');
+      info.style.display = 'block';
+    } else {
+      info.style.display = 'none';
+    }
+  }
+
+  function populateTroopMemberSelect() {
+    const select = document.getElementById('troopMember');
+    if (!select) return;
+    const sorted = [...membersData].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    select.innerHTML = '<option value="">Select member...</option>' +
+      sorted.map(m => `<option value="${escapeHtml(m.name)}">${escapeHtml(m.name)}</option>`).join('');
+  }
+
+  async function loadTroopParticipation(ev) {
+    const section = document.getElementById('troopParticipationSection');
+    section.style.display = 'block';
+    document.getElementById('troopParticipationTitle').textContent = `🎖️ ${ev.eventName} — Participation`;
+    const headersEl = document.getElementById('troopParticipationHeaders');
+    const bodyEl = document.getElementById('troopParticipationBody');
+    clearOutcomeSummary('troopParticipationBody');
+    try {
+      const [result] = await Promise.all([callFunction('getEventParticipation', [ev.eventName]), ensureTroopCategories(), ensurePenaltyExemptions()]);
+      if (result && result.success && result.data && result.data.length > 0) {
+        // Use dedicated troop columns if calculated, otherwise show raw
+        const firstRow = result.data[0];
+        const hasTroopCols = 'Troop Category' in firstRow;
+        const displayHeaders = hasTroopCols
+          ? ['Member Name', 'Points', 'Troop Category', 'Target', 'Status'].concat(TITLE_TARGETS ? ['Notes'] : [], ('Penalty' in firstRow) ? ['Penalty', 'Penalty Status'] : [])
+          : Object.keys(firstRow);
+
+        headersEl.innerHTML = displayHeaders.map(h =>
+          `<th onclick="sortParticipation('${escapeHtml(h)}')" style="cursor:pointer">${escapeHtml(TITLE_TARGETS && hasTroopCols && h === 'Notes' ? 'Title' : h)}</th>`
+        ).join('');
+
+        lastPartData = result.data;
+        lastPartHeaders = displayHeaders;
+        currentPartBodyId = 'troopParticipationBody';
+        renderTroopParticipation(result.data, displayHeaders);
+      } else {
+        headersEl.innerHTML = '';
+        bodyEl.innerHTML = '<tr><td style="text-align:center;color:var(--text-muted);padding:20px">No participation data yet. Enter points and click Calculate.</td></tr>';
+      }
+    } catch (err) {
+      bodyEl.innerHTML = '<tr><td style="text-align:center;color:var(--danger)">Error loading participation</td></tr>';
+    }
+  }
+
+  function renderTroopParticipation(data, headers) {
+    let sorted = [...data];
+    if (partSortField && headers.includes(partSortField)) {
+      sorted.sort((a, b) => {
+        let va = a[partSortField], vb = b[partSortField];
+        const na = Number(va), nb = Number(vb);
+        if (!isNaN(na) && !isNaN(nb)) return partSortAsc ? na - nb : nb - na;
+        return partSortAsc ? String(va || '').localeCompare(String(vb || '')) : String(vb || '').localeCompare(String(va || ''));
+      });
+    }
+    const bodyEl = document.getElementById('troopParticipationBody');
+    bodyEl.innerHTML = sorted.map(row => {
+      return '<tr>' + headers.map(h => {
+        const val = String(row[h] || '');
+        // Style status column (penalty-exempt members: the Exempt badge)
+        if (h === 'Status' && penaltyExemptBadge(row['Member Name'])) return `<td style="text-align:center">${penaltyExemptBadge(row['Member Name'])}</td>`;
+        if (h === 'Status') {
+          const icon = val === 'Pass' ? '✅' : val === 'Partial' ? '⚠️' : val === 'Fail' ? '❌' : '—';
+          const color = val === 'Pass' ? 'var(--success)' : val === 'Partial' ? '#f0a500' : val === 'Fail' ? 'var(--danger)' : 'var(--text-muted)';
+          return `<td style="text-align:center;color:${color};font-weight:600">${icon} ${escapeHtml(val)}</td>`;
+        }
+        // Style category badge
+        if (h === 'Troop Category') {
+          if (val && val !== 'Unknown' && val !== '-') {
+            return `<td style="text-align:center">${catBadgeHtml(val)}</td>`;
+          }
+          return `<td style="text-align:center;color:var(--text-muted)">—</td>`;
+        }
+        // Right-align numeric columns
+        if (h === 'Penalty') return penaltyCellHtml(row);
+        if (h === 'Penalty Status') return penaltyStatusCellHtml(row);
+        if (h === 'Points' || h === 'Target') {
+          const num = Number(val);
+          return `<td style="text-align:right">${!isNaN(num) && val !== '-' ? num.toLocaleString() : val}</td>`;
+        }
+        return `<td>${escapeHtml(val)}</td>`;
+      }).join('') + '</tr>';
+    }).join('');
+    renderOutcomeSummary('troopParticipationBody', sorted);
+  }
+
+  async function saveTroopEntry() {
+    const status = document.getElementById('troopEntryStatus');
+    status.textContent = '';
+    if (!selectedEvent) { status.textContent = 'No event selected.'; status.style.color = 'var(--danger)'; return; }
+    const memberName = document.getElementById('troopMember').value;
+    const points = parseInt(document.getElementById('troopPoints').value) || 0;
+    if (!memberName) { status.textContent = 'Please select a member.'; status.style.color = 'var(--danger)'; return; }
+    status.textContent = 'Saving...'; status.style.color = 'var(--text-muted)';
+    try {
+      const result = await callFunction('recordManualParticipation', [selectedEvent.eventName, memberName, points, '']);
+      if (result?.success) {
+        status.textContent = result.message || 'Saved!'; status.style.color = 'var(--success)';
+        document.getElementById('troopPoints').value = '';
+        document.getElementById('troopMember').value = '';
+        loadTroopParticipation(selectedEvent);
+      } else {
+        status.textContent = result?.message || 'Failed to save.'; status.style.color = 'var(--danger)';
+      }
+    } catch (err) { status.textContent = 'Error: ' + err.message; status.style.color = 'var(--danger)'; }
+  }
+
+  async function calculateTroopParticipation() {
+    if (!selectedEvent) return;
+    const status = document.getElementById('troopEntryStatus');
+    status.textContent = 'Calculating troop status...'; status.style.color = 'var(--text-muted)';
+    try {
+      const result = await callFunction('calculateTroopParticipation', [selectedEvent.eventName]);
+      status.textContent = result?.message || 'Done';
+      status.style.color = result?.success ? 'var(--success)' : 'var(--danger)';
+      if (result?.success) loadTroopParticipation(selectedEvent);
+    } catch (err) { status.textContent = 'Error: ' + err.message; status.style.color = 'var(--danger)'; }
+  }
+
+  async function fillTroopNonParticipants() {
+    if (!selectedEvent) return;
+    const status = document.getElementById('troopEntryStatus');
+    status.textContent = 'Filling non-participants...'; status.style.color = 'var(--text-muted)';
+    try {
+      const result = await callFunction('calculateManualNonParticipants', [selectedEvent.eventName]);
+      status.textContent = result?.message || 'Done';
+      status.style.color = result?.success ? 'var(--success)' : 'var(--danger)';
+      if (result?.success) loadTroopParticipation(selectedEvent);
+    } catch (err) { status.textContent = 'Error: ' + err.message; status.style.color = 'var(--danger)'; }
+  }
+
+  // GENERIC PARTICIPATION LOADER
+  async function loadParticipationInto(ev, sectionId, titleId, headersId, bodyId) {
+    const section = document.getElementById(sectionId);
+    section.style.display = 'block';
+    document.getElementById(titleId).textContent = `📊 ${ev.eventName} — Participation`;
+    clearOutcomeSummary(bodyId);
+    try {
+      const [result] = await Promise.all([callFunction('getEventParticipation', [ev.eventName]), ensureTroopCategories(), ensurePenaltyExemptions()]);
+      if (result && result.success && result.data.length > 0) {
+        const headers = Object.keys(result.data[0]);
+        document.getElementById(headersId).innerHTML = headers.map(h => `<th onclick="sortParticipation('${escapeHtml(h)}')">${escapeHtml(h)}</th>`).join('');
+        lastPartData = result.data;
+        lastPartHeaders = headers;
+        // Use correct body id for rendering
+        currentPartBodyId = bodyId;
+        renderParticipation(result.data, headers);
+      } else {
+        document.getElementById(headersId).innerHTML = '';
+        document.getElementById(bodyId).innerHTML = '<tr><td style="text-align:center;color:var(--text-muted)">No participation data yet</td></tr>';
+      }
+    } catch (err) { showToast('Error loading participation', 'error'); }
+  }
+
+  // --- Results summary + copy/paste export, above each participation table ---
+  // Met = reached the target, Tried = at least 50% of it, Didn't try = some points but under 50%,
+  // Didn't participate = no points. Exempt members (joined after the event started, or a penalty
+  // exemption covering the event) are left out.
+  const OUTCOME_GROUPS = [
+    { key: 'met', label: 'Met target', color: '#2e7d32' },
+    { key: 'tried', label: 'Tried (≥ 50%)', color: '#f0a500' },
+    { key: 'low', label: "Didn't try (< 50%)", color: '#e53935' },
+    { key: 'none', label: "Didn't participate", color: '#9e9e9e' },
+    { key: 'noTarget', label: 'No target', color: '#78909c' },
+  ];
+  let outcomeRowsByBody = {};
+  let troopCategoryByName = null;
+
+  /** Troop levels (G8, T9, ...) by lower-case name, loaded once: the [level] in the export. */
+  async function ensureTroopCategories() {
+    if (troopCategoryByName) return;
+    troopCategoryByName = {};
+    try {
+      const result = await callFunction('getTroopCategories');
+      const rows = Array.isArray(result) ? result : (Array.isArray(result?.data) ? result.data : []);
+      rows.forEach(r => {
+        const name = String(r?.playerName || r?.name || '').trim().toLowerCase();
+        if (name && r.category) troopCategoryByName[name] = r.category;
+      });
+    } catch (e) { /* without troop levels the export leaves the [level] out */ }
+  }
+
+  // Penalty exemptions (Admin → 🛡️ Penalty Exemptions), loaded once: an Exempt label next to the
+  // member's name, and those members left out of the results, as the penalties leave them out.
+  let penaltyExemptions = null; // lower-case name → { name, reason, startDate, endDate }
+
+  async function ensurePenaltyExemptions() {
+    if (penaltyExemptions) return;
+    try {
+      const result = await callFunction('getExemptMembers');
+      if (!result || !Array.isArray(result.members)) return;
+      penaltyExemptions = {};
+      result.members.forEach(entry => {
+        const key = String(entry?.name || '').trim().toLowerCase();
+        if (key) penaltyExemptions[key] = entry;
+      });
+    } catch (e) { /* no labels this time; tried again on the next load */ }
+  }
+
+  function isoDay(value) {
+    const m = String(value || '').trim().match(/^(\d{4}-\d{2}-\d{2})/);
+    return m ? m[1] : '';
+  }
+
+  /** The member's exemption when it covers the selected event's dates (no dates = always), else null. */
+  function penaltyExemptionOf(memberName) {
+    const entry = (penaltyExemptions || {})[String(memberName || '').trim().toLowerCase()];
+    if (!entry) return null;
+    const from = isoDay(entry.startDate), until = isoDay(entry.endDate);
+    const eventStart = isoDay(selectedEvent?.startDate || selectedEvent?.endDate);
+    const eventEnd = isoDay(selectedEvent?.endDate || selectedEvent?.startDate);
+    if (from && eventEnd && from > eventEnd) return null;
+    if (until && eventStart && until < eventStart) return null;
+    return entry;
+  }
+
+  /** "until 2026-11-15" / "from 2026-10-01" for a temporary exemption, '' for a permanent one. */
+  function exemptionDatesText(entry) {
+    const from = isoDay(entry.startDate), until = isoDay(entry.endDate);
+    if (from && until) return `${from} → ${until}`;
+    return until ? `until ${until}` : from ? `from ${from}` : '';
+  }
+
+  /** The member's join date (yyyy-MM-dd) when they joined after the selected event started, else ''.
+   *  Events start at the reset (17:00 UTC) of their start day: joined that day counts as after it,
+   *  unless the Members page says "joined before reset". */
+  function joinedAfterEventStart(memberName) {
+    const key = String(memberName || '').trim().toLowerCase();
+    const m = (membersData || []).find(x => String(x.name || '').trim().toLowerCase() === key);
+    const join = isoDay(m && m.joinDate), start = isoDay(selectedEvent?.startDate);
+    return join && start && (join > start || (join === start && !m.beforeReset)) ? join : '';
+  }
+
+  /** For the status column: an Exempt (permanent) or Temp. exempt badge with its dates; '' when not exempt. */
+  function penaltyExemptBadge(memberName) {
+    const entry = penaltyExemptionOf(memberName);
+    if (!entry) {
+      // Joined after the event started: not counted, no penalty
+      const joined = joinedAfterEventStart(memberName);
+      return joined ? '<span style="display:inline-block;padding:1px 8px;border-radius:10px;font-size:0.8em;font-weight:600;white-space:nowrap;background:rgba(66,204,51,0.18);color:#81c784;border:1px solid #81c784;" title="Joined the clan after this event started: not counted, no penalty">🛡️ Exempt</span>'
+        + '<div style="font-size:0.78em;color:var(--text-muted);margin-top:2px;">joined ' + escapeHtml(joined) + '</div>' : '';
+    }
+    const dates = exemptionDatesText(entry);
+    const tip = 'Penalty exemption' + (entry.reason ? ': ' + entry.reason : '') + ' (' + (dates || 'permanent') + '). Not counted in the results, no penalty.';
+    const style = 'display:inline-block;padding:1px 8px;border-radius:10px;font-size:0.8em;font-weight:600;white-space:nowrap;'
+      + (dates ? 'background:rgba(255,194,0,0.18);color:#e6c35c;border:1px solid #e6c35c;' : 'background:rgba(66,204,51,0.18);color:#81c784;border:1px solid #81c784;');
+    return `<span style="${style}" title="${escapeHtml(tip).replace(/"/g, '&quot;')}">🛡️ ${dates ? 'Temp. exempt' : 'Exempt'}</span>`
+      + (dates ? `<div style="font-size:0.78em;color:var(--text-muted);margin-top:2px;">${escapeHtml(dates)}</div>` : '');
+  }
+
+  /** A participation sheet row as { memberName, category, achieved, target, exempt, fallback }. */
+  function outcomeRowOf(row, ev) {
+    const name = String(row['Member Name'] || '').trim();
+    const typeConfig = eventTypesData.find(t => t.name === ev?.eventType) || {};
+    const threshold = Number(typeConfig.threshold) || 0;
+    const sheetCategory = String(row['Troop Category'] || '').trim();
+    const category = (sheetCategory && sheetCategory !== 'Unknown' && sheetCategory !== '-')
+      ? sheetCategory : ((troopCategoryByName || {})[name.toLowerCase()] || '');
+    if (ev?.participationMethod === 'chest-based') {
+      // Target = the event type's chest threshold; without one, 1 chest (Participated = Yes) is enough
+      const chests = Number(row['Chest Count']) || 0;
+      const participated = String(row['Participated'] || '').trim();
+      return { memberName: name, category, achieved: chests, target: threshold, exempt: participated === 'N/A' || !!joinedAfterEventStart(name),
+        fallback: participated === 'Yes' ? 'met' : chests > 0 ? 'low' : 'none' };
+    }
+    // Troop / manual: the calculated Target, else the event's troop targets (unknown level: T9 or the highest,
+    // as the penalties do), else the event's target points or the event type's threshold
+    let targets = null;
+    try { if (ev?.troopTargets) targets = JSON.parse(ev.troopTargets); } catch (e) {}
+    let target = Number(row['Target']) || 0;
+    if (!target && targets && Object.keys(targets).length) {
+      const fallbackCategory = targets.T9 !== undefined ? 'T9'
+        : Object.keys(targets).reduce((best, c) => !best || Number(targets[c]) > Number(targets[best]) ? c : best, '');
+      const knownCategory = category !== '' && targets[category] !== undefined;
+      // Troop events with an unknown level have no target (no penalty either)
+      target = knownCategory ? Number(targets[category]) || 0 : ev.participationMethod === 'troop-based' ? 0 : Number(targets[fallbackCategory]) || 0;
+    } else if (!target) {
+      target = Number(ev?.targetPoints) || threshold;
+    }
+    return { memberName: name, category, achieved: Number(row['Points']) || 0, target,
+      exempt: String(row['Notes'] || '').includes('Not Applicable') || !!joinedAfterEventStart(name) };
+  }
+
+  function outcomeOf(r) {
+    const pts = Number(r.achieved) || 0;
+    if (r.target > 0) return pts >= r.target ? 'met' : pts >= r.target * 0.5 ? 'tried' : pts > 0 ? 'low' : 'none';
+    if (r.fallback) return r.fallback;
+    return pts > 0 ? 'noTarget' : 'none';
+  }
+
+  // "Name [G9] 12,345 (85%)" — the troop level and % only when known
+  function outcomeLine(r) {
+    let line = r.memberName;
+    if (r.category) line += ` [${r.category}]`;
+    const pts = Number(r.achieved) || 0;
+    if (pts <= 0) return line + ' - Not Participated';
+    line += ' ' + pts.toLocaleString();
+    if (r.target > 0) line += ` (${Math.floor(pts / r.target * 100) || '<1'}%)`;
+    return line;
+  }
+
+  function clearOutcomeSummary(bodyId) {
+    const el = document.getElementById(bodyId + 'Outcome');
+    if (el) el.remove();
+    delete outcomeRowsByBody[bodyId];
+  }
+
+  /** The summary bar above the table; data = the sheet rows in table order. */
+  function renderOutcomeSummary(bodyId, data) {
+    const box = document.getElementById(bodyId).closest('.table-container');
+    let el = document.getElementById(bodyId + 'Outcome');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = bodyId + 'Outcome';
+      el.style.cssText = 'margin:0 0 10px 0; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:var(--bg-card-soft); font-size:0.88em; color:var(--text);';
+      box.parentNode.insertBefore(el, box);
+    }
+    const rows = data.map(row => outcomeRowOf(row, selectedEvent)).filter(r => r.memberName);
+    const exemptions = rows.filter(r => penaltyExemptionOf(r.memberName));
+    const counted = rows.filter(r => !r.exempt && !penaltyExemptionOf(r.memberName)).map(r => Object.assign(r, { outcome: outcomeOf(r) }));
+    outcomeRowsByBody[bodyId] = counted;
+    const counts = {};
+    counted.forEach(r => { counts[r.outcome] = (counts[r.outcome] || 0) + 1; });
+    const exempt = rows.length - counted.length;
+    const chips = OUTCOME_GROUPS.filter(g => g.key !== 'noTarget' || counts.noTarget).map(g =>
+      `<button type="button" class="btn secondary" style="margin:0;padding:4px 10px;font-size:0.9em;border-left:4px solid ${g.color};" title="Copy this group" onclick="copyOutcome('${bodyId}','${g.key}')">${escapeHtml(g.label)}: <strong>${counts[g.key] || 0}</strong></button>`).join('');
+    el.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;">`
+      + `<strong style="color:var(--primary-strong);">Results (${counted.length} members${exempt ? `, ${exempt} exempt` : ''}):</strong>${chips}`
+      + `<button type="button" class="btn" style="margin:0 0 0 auto;padding:4px 10px;font-size:0.9em;" title="Name [troop level] points (% of target), in the order of the table" onclick="copyOutcome('${bodyId}','')">📋 Copy all</button>`
+      + `<span id="${bodyId}OutcomeStatus" style="font-size:0.9em;"></span></div>`
+      + (exemptions.length ? `<div style="margin-top:8px;color:var(--text-muted);">🛡️ <strong style="color:var(--text);">Penalty exempt (${exemptions.length}):</strong> ${exemptions.map(r => {
+          const dates = exemptionDatesText(penaltyExemptionOf(r.memberName));
+          return escapeHtml(r.memberName) + (dates ? ` <em>(temp., ${escapeHtml(dates)})</em>` : '');
+        }).join(', ')}</div>` : '')
+      + `<details style="margin-top:8px;"><summary style="cursor:pointer;color:var(--text-muted);font-size:0.9em;">Show text to copy</summary>`
+      + `<textarea id="${bodyId}OutcomeText" readonly rows="8" style="width:100%;margin-top:6px;font-family:monospace;font-size:0.9em;border:1px solid var(--border);border-radius:6px;padding:6px;"></textarea></details>`;
+    document.getElementById(bodyId + 'OutcomeText').value = counted.map(outcomeLine).join('\n');
+  }
+
+  /** Copy the list (one group, or everyone when groupKey is empty) for the game chat or Telegram. */
+  function copyOutcome(bodyId, groupKey) {
+    const rows = (outcomeRowsByBody[bodyId] || []).filter(r => !groupKey || r.outcome === groupKey);
+    const text = rows.map(outcomeLine).join('\n');
+    const ta = document.getElementById(bodyId + 'OutcomeText');
+    const status = document.getElementById(bodyId + 'OutcomeStatus');
+    if (ta) ta.value = text;
+    const group = OUTCOME_GROUPS.find(g => g.key === groupKey);
+    const done = (ok) => {
+      if (!status) return;
+      status.style.color = ok ? 'var(--success)' : 'var(--danger)';
+      status.textContent = ok ? `Copied ${rows.length} ${group ? '"' + group.label + '"' : ''} line(s).` : 'Copy blocked by the browser: select the text below and copy it.';
+    };
+    const fallback = () => {
+      if (!ta) return done(false);
+      ta.closest('details').open = true;
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      done(ok);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => done(true), fallback);
+    else fallback();
+  }
+
+  let currentPartBodyId = 'chestParticipationBody';
+
+  function penaltyCellHtml(row) {
+    const member = row['Member Name'] || row.memberName || '';
+    const raw = row['Penalty'];
+    const value = raw === '' || raw == null ? '' : Number(raw) || 0;
+    return `<td style="min-width:150px;"><input type="number" min="0" step="1" value="${value || ''}" data-member="${escapeAttr(member)}" class="penalty-input" style="width:90px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;"> <button class="btn secondary" style="padding:3px 7px;font-size:0.78em;" onclick="savePenalty('${escapeAttr(member)}', this)">Save</button></td>`;
+  }
+
+  function penaltyStatusCellHtml(row) {
+    const member = row['Member Name'] || row.memberName || '';
+    const status = row['Penalty Status'] || '';
+    return `<td style="min-width:170px;"><span style="font-weight:600;color:${status === 'Exempt' || status === 'Waived' ? 'var(--success)' : 'var(--text-muted)'}">${escapeHtml(status || 'Auto')}</span> <button class="btn secondary" style="padding:3px 7px;font-size:0.78em;" onclick="waivePenalty('${escapeAttr(member)}')">Waive</button> <button class="btn secondary" style="padding:3px 7px;font-size:0.78em;" onclick="resetPenalty('${escapeAttr(member)}')">Reset</button></td>`;
+  }
+
+  // Save / Waive / Reset for one member: changeAppliedPenalty changes only that member's
+  // penalty (bank row in place, point penalty) once the event's penalties are applied,
+  // and before that saves it and applies the event, as updateEventPenalty did.
+  async function savePenalty(memberName, btn) {
+    if (!selectedEvent) return;
+    const row = btn.closest('tr');
+    const input = row ? row.querySelector('.penalty-input') : null;
+    const amount = input ? Number(input.value) || 0 : 0;
+    try {
+      const result = await callFunction('changeAppliedPenalty', [selectedEvent.eventName, memberName, amount, 'Adjusted']);
+      showToast(result?.message || 'Penalty updated', result?.success ? 'success' : 'error');
+      if (result?.success) reloadParticipationForSelectedEvent();
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+  }
+
+  async function waivePenalty(memberName) {
+    if (!selectedEvent) return;
+    try {
+      const result = await callFunction('changeAppliedPenalty', [selectedEvent.eventName, memberName, 0, 'Waived']);
+      showToast(result?.message || 'Penalty waived', result?.success ? 'success' : 'error');
+      if (result?.success) reloadParticipationForSelectedEvent();
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+  }
+
+  async function resetPenalty(memberName) {
+    if (!selectedEvent) return;
+    try {
+      const result = await callFunction('changeAppliedPenalty', [selectedEvent.eventName, memberName, 0, 'Auto']);
+      showToast(result?.message || 'Penalty reset', result?.success ? 'success' : 'error');
+      if (result?.success) reloadParticipationForSelectedEvent();
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+  }
+
+  async function recalculatePenalties() {
+    if (!selectedEvent) return;
+    try {
+      const result = await callFunction('applyEventPenalties', [selectedEvent.eventName]);
+      showToast(result?.message || 'Penalties recalculated', result?.success ? 'success' : 'error');
+      if (result?.success) { closePenaltyPreview(); reloadParticipationForSelectedEvent(); }
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+  }
+
+  // Dry-run: shows what applyEventPenalties would write, without touching the sheet or bank.
+  async function previewPenalties() {
+    if (!selectedEvent) return;
+    try {
+      const result = await callFunction('calculateEventPenalties', [selectedEvent.eventName]);
+      if (!result || !result.success) {
+        showToast(result?.message || 'Could not calculate penalties', 'error');
+        return;
+      }
+      renderPenaltyPreview(result);
+      showToast(result.message || 'Preview ready', 'success');
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+  }
+
+  function renderPenaltyPreview(result) {
+    const panel = document.getElementById('penaltyPreviewPanel');
+    const body = document.getElementById('penaltyPreviewBody');
+    const summary = document.getElementById('penaltyPreviewSummary');
+    if (!panel || !body) return;
+
+    const rows = (result.preview || []).filter(r => r.memberName);
+    const penalised = rows.filter(r => Number(r.amount) > 0);
+    summary.textContent = result.penaltyEnabled
+      ? `${result.penalisedMembers} member(s) would be penalised for a total of ${result.totalPenalty} ${result.penaltyType}. Nothing has been saved yet.`
+      : 'Penalties are disabled for this event.';
+
+    const listed = penalised.length > 0 ? penalised : rows;
+    body.innerHTML = listed.length === 0
+      ? '<tr><td colspan="3" style="text-align:center;color:var(--text-muted)">No rows to penalise</td></tr>'
+      : listed.map(r => `<tr><td>${escapeHtml(r.memberName)}</td><td style="text-align:right">${Number(r.amount) > 0 ? Number(r.amount).toLocaleString() : '-'}</td><td>${escapeHtml(r.status || 'Auto')}</td></tr>`).join('');
+    panel.style.display = 'block';
+  }
+
+  function closePenaltyPreview() {
+    const panel = document.getElementById('penaltyPreviewPanel');
+    if (panel) panel.style.display = 'none';
+  }
+
+  function reloadParticipationForSelectedEvent() {
+    if (!selectedEvent) return;
+    if (selectedEvent.participationMethod === 'chest-based') onChestEventSelected();
+    else if (selectedEvent.participationMethod === 'troop-based') loadTroopParticipation(selectedEvent);
+    else if (isHeroMethod(selectedEvent.participationMethod)) loadHeroParticipation(selectedEvent);
+    else onManualEventSelected();
+  }
+
+  // HERO EVENTS TAB (calculateHeroLevelParticipation on the database)
+  function onHeroEventSelected() {
+    const name = document.getElementById('heroEventSelect').value;
+    const ev = eventsData.find(e => e.eventName === name);
+    selectedEvent = ev || null;
+    document.getElementById('heroEventActions').style.display = ev ? 'block' : 'none';
+    if (!ev) { document.getElementById('heroParticipationSection').style.display = 'none'; return; }
+    let targets = {};
+    try { if (ev.troopTargets) targets = JSON.parse(ev.troopTargets); } catch (e) {}
+    const et = eventTypesData.find(t => t.name === ev.eventType);
+    const def = Number(ev.targetPoints) || Number(et && et.threshold) || 0;
+    const reach = ev.participationMethod === 'hero-reach';
+    const perCat = Object.entries(targets).map(([cat, n]) => `${catBadgeHtml(cat)} ${escapeHtml(String(n))}`).join(' &nbsp;│&nbsp; ');
+    document.getElementById('heroEventInfo').innerHTML = `🎯 Norm: ${reach ? 'reach hero level' : 'gain hero levels'} — default <strong>${def || '—'}</strong>${perCat ? ' &nbsp;│&nbsp; ' + perCat : ''}`;
+    loadHeroParticipation(ev);
+  }
+
+  async function calculateHeroLevelEvent() {
+    if (!selectedEvent) return;
+    try {
+      const result = await callFunction('calculateHeroLevelParticipation', [selectedEvent.eventName]);
+      showToast(result?.message || 'Done', result?.success ? 'success' : 'error');
+      if (result?.success) loadHeroParticipation(selectedEvent);
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+  }
+
+  async function loadHeroParticipation(ev) {
+    document.getElementById('heroParticipationSection').style.display = 'block';
+    document.getElementById('heroParticipationTitle').textContent = `🦸 ${ev.eventName} — Hero Levels`;
+    const headersEl = document.getElementById('heroParticipationHeaders');
+    const bodyEl = document.getElementById('heroParticipationBody');
+    try {
+      const [result] = await Promise.all([callFunction('getEventParticipation', [ev.eventName]), ensurePenaltyExemptions()]);
+      if (!(result && result.success && result.data && result.data.length > 0)) {
+        headersEl.innerHTML = '';
+        bodyEl.innerHTML = '<tr><td style="text-align:center;color:var(--text-muted);padding:20px">Not calculated yet. Click Calculate (or wait for the automatic calculation the day after the event).</td></tr>';
+        return;
+      }
+      const reach = ev.participationMethod === 'hero-reach';
+      const showPenalty = !!ev.penaltyEnabled;
+      const headers = ['Member', 'Category', reach ? 'Level' : 'Gained', 'Target', 'Result', 'Levels'].concat(showPenalty ? ['Penalty', 'Penalty Status'] : []);
+      headersEl.innerHTML = headers.map(h => `<th>${escapeHtml(h)}</th>`).join('');
+      const order = { 'No': 0, 'No data': 1, 'Yes': 2 };
+      const rows = [...result.data].sort((a, b) => ((order[a.Status] ?? 3) - (order[b.Status] ?? 3)) || String(a['Member Name']).localeCompare(String(b['Member Name'])));
+      const cell = (v) => (v === '' || v === null || v === undefined ? '<span style="color:var(--text-muted)">—</span>' : escapeHtml(String(v)));
+      bodyEl.innerHTML = rows.map(row => {
+        const status = String(row.Status || '');
+        const exempt = penaltyExemptBadge(row['Member Name']);
+        const result = exempt || (status === 'Yes' ? '<span style="color:var(--success);font-weight:600">✅ Yes</span>'
+          : status === 'No' ? '<span style="color:var(--danger);font-weight:600">❌ No</span>'
+          : status === 'No data' ? '<span style="color:#eac185;font-weight:600" title="No hero level entered before the start, or none since: an officer decides">❔ No data</span>'
+          : `<span style="color:var(--text-muted)" title="${escapeAttr(status)}">— N/A</span>`);
+        const achieved = row.Achieved === '' || row.Achieved == null ? '' : (reach ? row.Achieved : (Number(row.Achieved) >= 0 ? '+' : '') + row.Achieved);
+        const cat = row['Troop Category'] ? catBadgeHtml(row['Troop Category']) : '<span style="color:var(--text-muted)">—</span>';
+        return `<tr><td>${escapeHtml(row['Member Name'])}</td><td style="text-align:center">${cat}</td><td style="text-align:center">${cell(achieved)}</td><td style="text-align:center">${cell(row.Target)}</td><td style="text-align:center">${result}</td><td>${cell(row.Notes)}</td>`
+          + (showPenalty ? penaltyCellHtml(row) + penaltyStatusCellHtml(row) : '') + '</tr>';
+      }).join('');
+    } catch (err) {
+      bodyEl.innerHTML = '<tr><td style="text-align:center;color:var(--danger)">Error loading results</td></tr>';
+    }
+  }
+
+  async function calculateParticipation() {
+    if (!selectedEvent) return;
+    try {
+      const result = await callFunction('calculateChestParticipation', [selectedEvent.eventName, selectedEvent.startDate, selectedEvent.endDate, selectedEvent.eventType]);
+      showToast(result?.message || 'Done', result?.success ? 'success' : 'error');
+      if (result?.debugTrace) {
+        console.log('=== CHEST PARTICIPATION DEBUG TRACE ===');
+        result.debugTrace.forEach(line => console.log(line));
+        console.log('=== END TRACE ===');
+      }
+      if (result?.success) onChestEventSelected();
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+  }
+
+  async function fillNonParticipants() {
+    if (!selectedEvent) return;
+    try {
+      const result = await callFunction('calculateManualNonParticipants', [selectedEvent.eventName]);
+      showToast(result?.message || 'Done', result?.success ? 'success' : 'error');
+      if (result?.success) onManualEventSelected();
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+  }
+
+  // MEMBERS
+  async function loadMembers() {
+    try {
+      const result = await callFunction('getMembersList');
+      const list = result?.members || result?.data || result || [];
+      membersData = Array.isArray(list) ? list : [];
+      populateMemberSelect();
+    } catch (err) { console.error('Failed to load members:', err); membersData = []; }
+  }
+
+  function populateMemberSelect() {
+    const select = document.getElementById('manualMember');
+    if (!select) return;
+    const sorted = [...membersData].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    select.innerHTML = '<option value="">Select member...</option>' +
+      sorted.map(m => `<option value="${escapeHtml(m.name)}">${escapeHtml(m.name)}</option>`).join('');
+  }
+
+  // MANUAL ENTRY
+  async function saveManualEntry() {
+    const status = document.getElementById('manualEntryStatus');
+    status.textContent = '';
+    if (!selectedEvent) { status.textContent = 'No event selected.'; status.style.color = 'var(--danger)'; return; }
+    const memberName = document.getElementById('manualMember').value;
+    const points = parseInt(document.getElementById('manualPoints').value) || 0;
+    if (!memberName) { status.textContent = 'Please select a member.'; status.style.color = 'var(--danger)'; return; }
+    status.textContent = 'Saving...'; status.style.color = 'var(--text-muted)';
+    try {
+      const result = await callFunction('recordManualParticipation', [selectedEvent.eventName, memberName, points, '']);
+      if (result?.success) {
+        status.textContent = result.message || 'Saved!'; status.style.color = 'var(--success)';
+        document.getElementById('manualPoints').value = '';
+        document.getElementById('manualMember').value = '';
+        onManualEventSelected();
+      } else {
+        status.textContent = result?.message || 'Failed to save.'; status.style.color = 'var(--danger)';
+      }
+    } catch (err) { status.textContent = 'Error: ' + err.message; status.style.color = 'var(--danger)'; }
+  }
+
+  // GENERATE EVENTS FROM CALENDAR
+  async function generateCalendarEvents() {
+    const btn = document.getElementById('generateEventsBtn');
+    const status = document.getElementById('generateStatus');
+    const daysAhead = Number(document.getElementById('generateDaysSelect').value);
+    const selectedTypes = Array.from(document.querySelectorAll('.gen-type-cb:checked')).map(cb => cb.value);
+    if (selectedTypes.length === 0) {
+      status.innerHTML = '⚠️ Please select at least one event type.';
+      status.style.color = 'var(--accent)';
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = '⏳ Generating...';
+    status.innerHTML = '';
+    try {
+      const result = await callFunction('generateCalendarEvents', [daysAhead, selectedTypes]);
+      btn.disabled = false;
+      btn.textContent = '📅 Generate Events';
+      if (result && result.success) {
+        const parts = [];
+        if (result.created && result.created.length > 0) parts.push('✅ Created ' + result.created.length + ': ' + result.created.join(', '));
+        if (result.skipped && result.skipped.length > 0) parts.push('⏭️ Skipped ' + result.skipped.length + ' existing');
+        if (result.errors && result.errors.length > 0) parts.push('❌ ' + result.errors.length + ' error(s)');
+        if (result.missingTypes && result.missingTypes.length > 0) parts.push('⚠️ Not generated, create these event types first: ' + result.missingTypes.map(escapeHtml).join(', '));
+        status.innerHTML = parts.join('<br>') || 'No events to generate in this range.';
+        status.style.color = (result.errors && result.errors.length > 0) ? 'var(--danger)' : 'var(--success)';
+        loadEvents();
+      } else {
+        status.innerHTML = '❌ ' + (result?.message || 'Generation failed.');
+        status.style.color = 'var(--danger)';
+      }
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = '📅 Generate Events';
+      status.innerHTML = '❌ Error: ' + err.message;
+      status.style.color = 'var(--danger)';
+    }
+  }
+
+  // ── MANUAL BATCH ENTRY ──
+  let manualBatchQueue = {};
+
+  function toggleManualBatch() {
+    const panel = document.getElementById('manualBatchPanel');
+    if (!panel) return;
+    if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+    panel.style.display = 'block';
+    manualBatchQueue = {};
+    document.getElementById('manualBatchStatus').textContent = '';
+    renderManualBatchTable();
+    document.getElementById('manualMember').focus();
+  }
+
+  function renderManualBatchTable() {
+    const tbody = document.getElementById('manualBatchBody');
+    const countEl = document.getElementById('manualBatchCount');
+    const keys = Object.keys(manualBatchQueue);
+    if (countEl) countEl.textContent = keys.length;
+    if (keys.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:16px; color:var(--text-muted);">No entries queued. Use the form above.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = keys.map(k => {
+      const e = manualBatchQueue[k];
+      return '<tr><td style="padding:4px 8px;">' + escapeHtml(e.name) + '</td>'
+        + '<td style="text-align:center; padding:4px 8px; color:var(--success); font-weight:700;">' + e.points + '</td>'
+        + '<td style="text-align:center; padding:4px 8px;"><button class="btn secondary" style="padding:1px 6px; font-size:0.75em;" onclick="removeManualBatchEntry(\'' + escapeAttr(k) + '\')">✖</button></td></tr>';
+    }).join('');
+  }
+
+  function addToManualBatch() {
+    const status = document.getElementById('manualEntryStatus');
+    status.textContent = '';
+    const memberSel = document.getElementById('manualMember');
+    const pointsInput = document.getElementById('manualPoints');
+    const name = memberSel.value;
+    const pts = parseInt(pointsInput.value, 10);
+    if (!name) { status.textContent = 'Select a member.'; status.style.color = 'var(--danger)'; return; }
+    if (isNaN(pts)) { status.textContent = 'Enter points.'; status.style.color = 'var(--danger)'; return; }
+    manualBatchQueue[name.toLowerCase()] = { name: name, points: pts };
+    status.textContent = '✓ Queued: ' + name + ' → ' + pts + ' pts'; status.style.color = 'var(--success)';
+    pointsInput.value = ''; memberSel.value = ''; memberSel.focus();
+    renderManualBatchTable();
+  }
+
+  function removeManualBatchEntry(key) { delete manualBatchQueue[key]; renderManualBatchTable(); }
+
+  async function saveManualBatch() {
+    const status = document.getElementById('manualBatchStatus');
+    status.textContent = ''; status.style.color = '';
+    if (!selectedEvent) { status.textContent = 'No event selected.'; status.style.color = 'var(--danger)'; return; }
+    const keys = Object.keys(manualBatchQueue);
+    if (keys.length === 0) { status.textContent = 'No entries queued.'; status.style.color = 'var(--danger)'; return; }
+    const records = keys.map(k => ({ memberName: manualBatchQueue[k].name, points: manualBatchQueue[k].points, notes: '', extra: '' }));
+    status.textContent = 'Saving ' + records.length + ' entries...'; status.style.color = 'var(--text-muted)';
+    try {
+      const result = await callFunction('batchRecordManualParticipation', [selectedEvent.eventName, records]);
+      if (result && result.success !== false) {
+        status.textContent = 'Saved ' + (result.successCount || records.length) + ' entries!'; status.style.color = 'var(--success)';
+        manualBatchQueue = {}; renderManualBatchTable();
+        onManualEventSelected();
+      } else { status.textContent = result?.message || 'Failed.'; status.style.color = 'var(--danger)'; }
+    } catch (err) { status.textContent = 'Error: ' + err.message; status.style.color = 'var(--danger)'; }
+  }
+
+  // ── TROOP BATCH ENTRY ──
+  let troopBatchQueue = {};
+
+  function toggleTroopBatch() {
+    const panel = document.getElementById('troopBatchPanel');
+    if (!panel) return;
+    if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+    panel.style.display = 'block';
+    troopBatchQueue = {};
+    document.getElementById('troopBatchStatus').textContent = '';
+    renderTroopBatchTable();
+    document.getElementById('troopMember').focus();
+  }
+
+  function renderTroopBatchTable() {
+    const tbody = document.getElementById('troopBatchBody');
+    const countEl = document.getElementById('troopBatchCount');
+    const keys = Object.keys(troopBatchQueue);
+    if (countEl) countEl.textContent = keys.length;
+    if (keys.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:16px; color:var(--text-muted);">No entries queued. Use the form above.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = keys.map(k => {
+      const e = troopBatchQueue[k];
+      return '<tr><td style="padding:4px 8px;">' + escapeHtml(e.name) + '</td>'
+        + '<td style="text-align:center; padding:4px 8px; color:var(--success); font-weight:700;">' + e.points + '</td>'
+        + '<td style="text-align:center; padding:4px 8px;"><button class="btn secondary" style="padding:1px 6px; font-size:0.75em;" onclick="removeTroopBatchEntry(\'' + escapeAttr(k) + '\')">✖</button></td></tr>';
+    }).join('');
+  }
+
+  function addToTroopBatch() {
+    const status = document.getElementById('troopEntryStatus');
+    status.textContent = '';
+    const memberSel = document.getElementById('troopMember');
+    const pointsInput = document.getElementById('troopPoints');
+    const name = memberSel.value;
+    const pts = parseInt(pointsInput.value, 10);
+    if (!name) { status.textContent = 'Select a member.'; status.style.color = 'var(--danger)'; return; }
+    if (isNaN(pts)) { status.textContent = 'Enter points.'; status.style.color = 'var(--danger)'; return; }
+    troopBatchQueue[name.toLowerCase()] = { name: name, points: pts };
+    status.textContent = '✓ Queued: ' + name + ' → ' + pts + ' pts'; status.style.color = 'var(--success)';
+    pointsInput.value = ''; memberSel.value = ''; memberSel.focus();
+    renderTroopBatchTable();
+  }
+
+  function removeTroopBatchEntry(key) { delete troopBatchQueue[key]; renderTroopBatchTable(); }
+
+  async function saveTroopBatch() {
+    const status = document.getElementById('troopBatchStatus');
+    status.textContent = ''; status.style.color = '';
+    if (!selectedEvent) { status.textContent = 'No event selected.'; status.style.color = 'var(--danger)'; return; }
+    const keys = Object.keys(troopBatchQueue);
+    if (keys.length === 0) { status.textContent = 'No entries queued.'; status.style.color = 'var(--danger)'; return; }
+    const records = keys.map(k => ({ memberName: troopBatchQueue[k].name, points: troopBatchQueue[k].points, notes: '', extra: '' }));
+    status.textContent = 'Saving ' + records.length + ' entries...'; status.style.color = 'var(--text-muted)';
+    try {
+      const result = await callFunction('batchRecordManualParticipation', [selectedEvent.eventName, records]);
+      if (result && result.success !== false) {
+        status.textContent = 'Saved ' + (result.successCount || records.length) + ' entries!'; status.style.color = 'var(--success)';
+        troopBatchQueue = {}; renderTroopBatchTable();
+        loadTroopParticipation(selectedEvent);
+      } else { status.textContent = result?.message || 'Failed.'; status.style.color = 'var(--danger)'; }
+    } catch (err) { status.textContent = 'Error: ' + err.message; status.style.color = 'var(--danger)'; }
+  }
+
+  // UTILITIES
+  function escapeHtml(str) { if (!str) return ''; const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+  function escapeAttr(str) { return String(str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+  function showToast(msg, type) {
+    const t = document.getElementById('toast'); t.textContent = msg;
+    t.className = 'toast ' + (type || ''); t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3000);
+  }
+</script>
+</body>
+</html>
