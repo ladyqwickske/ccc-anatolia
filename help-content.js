@@ -155,7 +155,7 @@ window.HELP_CONTENT = {
           'Make sure all points are entered, and click **Fill Non-Participants**.',
           'Click **👁️ Preview Penalties** and check the list.',
           'Is the list correct? Click **⚖️ Apply These Penalties**.',
-          'Members on **Admin → 🛡️ Penalty Exemptions** get no penalty.'
+          'Members on **Admin → 🛡️ Exemptions** get no penalty.'
         ] },
         { q: 'How do I create one event by hand?', steps: [
           'Open **➕ Create Event**.',
@@ -187,7 +187,7 @@ window.HELP_CONTENT = {
         ] },
         { title: '📈 Progress', list: [
           '**⚔️ Track Troops**: save the troop levels (G, S, M, E) and the Carter level of a member.',
-          '**🦸 Hero Level** and **🏗️ Carter Level**: save these levels. **📋 Batch Entry** lets you enter many members at once.',
+          '**🦸 Hero Level**: save the hero level. **📋 Batch Entry** lets you enter many members at once.',
           '**📦 Chest Points**: the chest points of every member in the last 5 periods, compared to their target.'
         ] },
         { title: 'Where are targets, exemptions and logins?', text: 'On the **Admin** page.' }
@@ -337,7 +337,7 @@ window.HELP_CONTENT = {
         ] },
         { title: '🏷️ Rules', list: [
           '**🏷️ Chest Point Values**: how many points each chest is worth. A change counts again for the active period right away.',
-          '**🛡️ Penalty Exemptions**: members who get no automatic penalties, for example utility accounts or members on holiday. You can give a start and end date.',
+          '**🛡️ Exemptions**: members who get no automatic penalties, for example utility accounts. You can give dates. **Vacation**: the member still gets penalties, but more of their extra points carry over to the next period, so they can collect points before the holiday.',
           '**🎯 Point Targets**: a member\'s own target for one period, for example a lower target for a new member. Leave it empty to use the normal target. Below the list you see the point penalties of that period.'
         ] },
         { title: '🔁 Between clans', list: [
@@ -351,9 +351,9 @@ window.HELP_CONTENT = {
       ],
       howto: [
         { q: 'A member goes on holiday.', steps: [
-          'Open **🏷️ Rules → 🛡️ Penalty Exemptions**.',
-          'Tick the member and fill in the start and end date of the holiday.',
-          'Click **💾 Save Exemptions**. The member gets no penalties during those dates.'
+          'Open **🏷️ Rules → 🛡️ Exemptions**.',
+          'Find the member. Tick **Listed** and **Vacation**, and fill in the dates of the holiday.',
+          'Click **💾 Save Exemptions**.'
         ] },
         { q: 'One member needs a different target.', steps: [
           'Open **🏷️ Rules → 🎯 Point Targets**.',
