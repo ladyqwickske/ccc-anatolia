@@ -1,4 +1,4 @@
-// cCc Anatolia — the live site, on its own database Worker.
+// cCc Anatolia II — the live site, on its own database Worker.
 // The database Worker: https://anatolia-db.ccc-hq.com
 //   - every read and change of the pages is answered by the database
 //     (there is no Google Sheet / Apps Script for this clan).
@@ -142,7 +142,7 @@ window.GAS_WEB_APP_URL = window.CLOUDFLARE_WORKER_URL;
 		var badge = document.createElement('div');
 		badge.id = 'staging-site-badge';
 		badge.textContent = 'MASTERS STAGING — test copy';
-		badge.title = 'Test copy of the cCc Anatolia site on the database Worker. Changes are disabled here; use the live site.';
+		badge.title = 'Test copy of the cCc Anatolia II site on the database Worker. Changes are disabled here; use the live site.';
 		badge.style.cssText = [
 			'position:fixed', 'left:8px', 'bottom:8px', 'z-index:2147483647',
 			'background:#c62828', 'color:#fff', 'font:700 12px/1.2 Arial,sans-serif',
