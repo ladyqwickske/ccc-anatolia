@@ -1,13 +1,13 @@
 /**
- * cCc Anatolia Site Configuration
+ * cCc Anatolia II Site Configuration
  */
 
 const SITE_CONFIG = {
   // Clan Identity
-  clanName: 'cCc Anatolia',
+  clanName: 'cCc Anatolia II',
   clanAbbr: 'ana',
 
-  // Branding: the cCc Anatolia colours (tools/new-clan-site.mjs, --palette)
+  // Branding: the cCc Anatolia II colours (tools/new-clan-site.mjs, --palette)
   primaryColor: '#7c99b4',
   secondaryColor: '#492c1d',
   favicon: 'logo.png',

@@ -1,5 +1,5 @@
 /**
- * Portal role gating (cCc Anatolia).
+ * Portal role gating (cCc Anatolia II).
  *
  * admin  - e-mail listed in ALLOWED_MANAGEMENT_EMAILS, sees management pages
  * member - e-mail linked to one or more active Members rows, sees public pages and My Profile
